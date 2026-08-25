@@ -132,6 +132,39 @@ Obecny sprzęt: gramofon Technics (wkładka MM), tani RIAA tranzystorowy
 - TBD po wymiarach: DXF płyt (góra lustrzana, tył, front ×3), layout PCB
   zasilacza, rysunek rozmieszczenia, BOM zakupowy.
 
+## TODO: filtrowanie zakłóceń (do ogarnięcia przed/na etapie budowy)
+
+Temat otwarty — zakłócenia z dwóch kierunków, oba do rozwiązania:
+
+**Z sieci 230 V (przewodzone):** obecnie mamy warystor + NTC + snubber RC na
+uzwojeniu HT. Do dodania pełny filtr przeciwzakłóceniowy EMI na wejściu:
+najprościej gniazdo IEC ze zintegrowanym filtrem (np. Schaffner FN9222,
+Schurter 5110 — dławik wspólny + kondensatory X2/Y2 w jednej puszce,
+prąd 1–2 A wystarczy) albo osobny moduł filtra za wyłącznikiem.
+Uwaga na kondensatory Y (L→PE, N→PE): świetnie tłumią zakłócenia
+wspólne, ale wpuszczają mały prąd upływu do PE — przy naszym ground
+breakerze to nieszkodliwe (upływ idzie do chassis/PE, nie do masy
+sygnałowej), lecz filtr MUSI być certyfikowany (X2/Y2), nie składany
+z przypadkowych kondensatorów. Rozważyć też: osobne odkłócenie od strony
+DC (perełki ferrytowe na wyjściach zasilacza do B+ i żarzenia).
+
+**Z "powietrza" (RF/pola):** wejścia MM to najczulszy punkt — 5 mV przy
+47 kΩ łapie radio, ładowarki, LED-y i telefon na obudowie. Warstwy obrony:
+grid stoppery już są (470R/1k przy pinach); do rozważenia dodatkowo małe
+perełki ferrytowe lub RC (np. 1k + 100p) bezpośrednio na gniazdach RCA
+wejściowych; przewody wejściowe wewnątrz obudowy ekranowane (ekran do GND
+tylko od strony gniazd); metalowa górna płyta + tylna blacha robią klatkę —
+sprawdzić po złożeniu, czy drewniane boki nie wpuszczają RF (jeśli tak:
+samoprzylepna folia miedziana/aluminiowa na wewnętrznych stronach desek,
+połączona z PE w jednym punkcie); kabel od gramofonu możliwie krótki,
+zacisk masy ramienia podłączony. Test praktyczny po budowie: telefon
+z włączonym transferem danych położony na obudowie + max głośność —
+cisza oznacza zdany egzamin.
+
+Decyzje do podjęcia przy budowie: filtr IEC zintegrowany czy osobny moduł;
+czy foliować drewno; czy RC na wejściach od razu, czy dopiero jeśli
+słychać RF (wersja purystyczna: dodawać tylko to, co potrzebne).
+
 ## Otwarte decyzje
 
 - Przełącznik wkładek MM/MC/PIEZO (SUT + tłumik) — do decyzji; na razie MM.
