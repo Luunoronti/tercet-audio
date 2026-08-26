@@ -1,0 +1,136 @@
+================================================================================
+ TERCET — przedwzmacniacz gramofonowy RIAA, WARIANT PURYSTYCZNY (rev P)
+ BOM — lista elementów (zero półprzewodników)
+ Źródło: riaa_preamp_purist.kicad_sch, 2026-08-26
+================================================================================
+
+LAMPY
+--------------------------------------------------------------------------------
+ 2 szt   ECC83 / 12AX7        V1, V2        tor audio, po jednej na kanał;
+                                            wybrać egzemplarze o niskim szumie
+                                            i mikrofonowaniu (selekcja "phono")
+ 1 szt   ECC82 / 12AU7        V3            wtórniki katodowe (A→L, B→R)
+ 1 szt   EZ81 / 6CA4          V4            prostownik anodowy; JJ produkuje nowe
+ 4 szt   gniazdo noval B9A    —             ceramiczne, z kołnierzem, montaż od
+                                            spodu chassis, śruby M3 imbus nierdz.
+
+TRANSFORMATOR I DŁAWIK
+--------------------------------------------------------------------------------
+ 1 szt   transformator        T1            prim. 230 V; wtórne: 2×230 V / min.
+         sieciowy "lampowy"                 0,15 A (Z ODCZEPEM ŚRODKOWYM!) oraz
+                                            6,3 V / 1 A (żarzenie EZ81).
+                                            UWAGA: kupione trafo EI84 100VA
+                                            NIE pasuje (brak odczepu) — dotyczy
+                                            tylko wariantu rev E.
+ 1 szt   dławik 10 H / 100 mA L1            DCR ≤ 200 R; filtr LC jest w tym
+                                            wariancie OBOWIĄZKOWY
+
+REZYSTORY — tor audio (metalizowane 0,6 W, o ile nie zaznaczono; RIAA: 1%)
+--------------------------------------------------------------------------------
+ 2 szt   47k                  R1, R101      obciążenie wejścia MM
+ 2 szt   470R                 R2, R102      grid stopper wejściowy (lutować
+                                            wprost na pinie gniazda lampy)
+ 4 szt   100k                 R3, R9,       anodowe; 1 W dla zapasu napięciowego
+                              R103, R109
+ 4 szt   1k5                  R4, R10,      katodowe stopni wzmacniających
+                              R104, R110
+ 2 szt   255k  1%             R5, R105      szeregowy RIAA (E96; alternatywnie
+                                            249k + 6k2)
+ 2 szt   33k   1%             R6, R106      RIAA (bocznik szeregowy)
+ 4 szt   1M                   R7, R11,      grid leak
+                              R107, R111
+ 4 szt   1k                   R8, R12,      grid stopper (na pinach gniazd)
+                              R108, R112
+ 2 szt   2k2                  R13, R113     katodowe wtórników (bias tap)
+ 2 szt   47k   1 W            R14, R114     katodowe wtórników (obciążenie)
+ 2 szt   470k                 R15, R115     upływowe wyjścia
+
+REZYSTORY — zasilacz i pomocnicze
+--------------------------------------------------------------------------------
+ 2 szt   10k  1 W             R18, R118     dropper B+3→B+2 (po jednym na kanał)
+ 2 szt   22k  1 W             R19, R119     dropper B+2→B+1
+ 4 szt   470k 1 W             R26, R27,     bleedery (wolne rozładowanie)
+                              R126, R127
+ 1 szt   470k (1 W zapas)     R22           dzielnik elewacji żarzenia (+50 V)
+ 1 szt   100k                 R23           dzielnik elewacji
+ 1 szt   4k7  10 W drutowy    R24           rozładowanie B+ (styk NC K1)
+ 1 szt   10R  5 W drutowy     R25           ground breaker
+ 1 szt   22R  5 W drutowy     R34           ogranicznik rozruchu w pierwotnym
+ 1 szt   220k (0,6 W)         R32           szeregowy neonówki
+ 1 szt   100R                 R33           snubber cewki K1
+ 1 szt   wg miernika          R30           mnożnik woltomierza M1 (dobrać:
+                                            pełna skala ~8 V)
+
+KONDENSATORY — tor audio
+--------------------------------------------------------------------------------
+ 2 szt   150p  mika/C0G       C1, C101      obciążenie wkładki MM
+ 4 szt   220u / 25 V elektr.  C2, C6,       bocznikowanie katod
+                              C102, C106
+ 4 szt   100n / 630 V PP      C3, C7,       sprzęgające (polipropylen)
+                              C103, C107
+ 2 szt   3n3  1% PP           C4, C104      RIAA
+ 2 szt   9n62 1% PP           C5, C105      RIAA; złożyć: 8n2 + 1n2 + 220p
+                                            (równolegle, wszystkie 1%)
+ 2 szt   2u2 / 400 V PP       C8, C108      wyjściowe
+
+KONDENSATORY — zasilacz
+--------------------------------------------------------------------------------
+ 1 szt   47u / 500 V          C9            PIERWSZY po EZ81 — max 50 uF, limit
+                                            lampy! Nie zwiększać.
+ 1 szt   100u / 500 V         C10           za dławikiem (B+3)
+         (C9+C10 opcjonalnie jako kubek wielosekcyjny 50+100/500 V na płycie
+          górnej, obejma z przekładką izolacyjną)
+ 4 szt   47u / 400 V          C12, C13,     filtry B+ per kanał
+                              C112, C113
+ 1 szt   22u / 100 V          C17           elewacja żarzenia
+ 1 szt   100n / 630 V         C18           ground breaker
+ 1 szt   100n / 630 V         C21           snubber cewki K1
+
+ŻARZENIE Z BATERII
+--------------------------------------------------------------------------------
+ 1 szt   akumulator AGM/żel   BT1           6 V / 10–12 Ah (np. typ "UPS/alarm");
+                                            TYLKO szczelny AGM lub żel!
+ 1 szt   bezpiecznik 2 A      F2            + oprawka; montaż BEZPOŚREDNIO przy
+         zwłoczny                           zacisku baterii
+ 1 szt   obejma/rama baterii  —             sztywne skręcenie z dnem obudowy
+ 1 szt   ładowarka buforowa   —             ZEWNĘTRZNA, 6 V AGM, etapowa z trybem
+                                            float 6,75–6,9 V (nie wchodzi w BOM
+                                            urządzenia — krzem zostaje na półce)
+
+AUTOMATYKA / STEROWANIE
+--------------------------------------------------------------------------------
+ 1 szt   przekaźnik DPDT      K1            cewka 230 V AC (np. Finder 40.52,
+                                            Relpol R2), styki min. 250 V /
+                                            zdolność łączenia DC! gniazdo+zatrzask
+ 1 szt   wyłącznik dźwigniowy SW1           DPST/DPDT 250 V AC 3 A, metalowa
+         sieciowy                           dźwignia (front)
+ 1 szt   przełącznik          SW2           DPDT 6 A, dźwigniowy (front);
+         PRACA/ŁADOWANIE                    przełącza baterię: lampy / gniazdo J6
+ 1 szt   neonówka NE-2        NE1           + oprawka "jewel" bursztynowa (front)
+ 1 szt   woltomierz wychyłowy M1            zakres ~8 V DC (lub 100 uA + R30);
+                                            zaznaczyć strefę 6,0–6,4 V (front)
+
+ZŁĄCZA / MECHANIKA / SIEĆ
+--------------------------------------------------------------------------------
+ 4 szt   gniazdo RCA          J1–J4         izolowane od chassis! (podkładki)
+ 1 szt   gniazdo IEC C14      J5            z szufladką bezpiecznika
+ 1 szt   bezpiecznik T500mA   F1            5×20, zwłoczny (w L, przed SW1)
+ 1 szt   złącze/gniazdo       J6            ładowanie 6 V (tylna ścianka);
+         zaciskowe 2-pin                    biegunowość opisać na panelu!
+ 1 szt   zacisk masy          —             śruba radełkowana (masa gramofonu
+         gramofonu                          → GND, nie chassis)
+ —       przewód żarzenia     —             skręcona para, min. 1 mm2 (0,9 A)
+ —       turret board,        —             wg ustaleń montażowych
+         tulejki, dystanse                  (docs/PROJEKT-RIAA.md)
+
+UWAGI KOŃCOWE
+--------------------------------------------------------------------------------
+1. Ground breaker w tym wariancie BEZ diod (10R || 100n) — patrz notka na
+   schemacie; alternatywa vintage: masa na sztywno do chassis przy wejściach.
+2. Wszystkie elementy przy B+ : napięcia robocze jak w liście (400/500/630 V) —
+   nie schodzić niżej.
+3. Elementy RIAA (R5/R6, C4/C5) — tolerancja 1% decyduje o zgodności korekcji
+   i balansie kanałów; kupić po kilka sztuk i sparować miernikiem L/R.
+4. Napięcia do ~330 V DC. Przed pracą: odczekać na rozładowanie (K1/R24 +
+   bleedery) i SPRAWDZIĆ woltomierzem każdą sekcję (<50 V).
+================================================================================
