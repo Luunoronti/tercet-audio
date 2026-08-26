@@ -165,10 +165,59 @@ Decyzje do podjęcia przy budowie: filtr IEC zintegrowany czy osobny moduł;
 czy foliować drewno; czy RC na wejściach od razu, czy dopiero jeśli
 słychać RF (wersja purystyczna: dodawać tylko to, co potrzebne).
 
+## Wariant purystyczny (zero półprzewodników) — opcja do decyzji
+
+Tor audio już jest w 100% lampowo-bierny; zmiany dotyczą wyłącznie zasilacza.
+
+**Prostownik anodowy:** lampa EZ81/EZ80 (lub GZ34). Wymaga INNEGO trafo:
+uzwojenie anodowe z odczepem środkowym (2×230 V) + uzwojenie żarzenia
+prostownika. Bonus: naturalny miękki start (katoda grzeje się ~15 s,
+B+ wstaje po lampach audio) — znika potrzeba układu wyciszania. Filtr LC
+(dławik obowiązkowy). Kupione trafo EI84 NIE pasuje do tego wariantu.
+
+**Żarzenie — prostowanie lampą NIE działa (rachunek):** lampy prostownicze
+to wysokie V / małe I; przy 6,3 V/0,9 A spadek ~20 V na bańce oznacza
+uzwojenie ~30 V i ~50 W strat (plus żarzenie samych prostowników), żeby
+dostarczyć 5,7 W. Nikt tego nigdy nie robił. Dwie realne opcje:
+1. **AC + humdinger**: skręcona para, potencjometr 100R między końcami
+   żarzenia (suwak do masy/elewacji, strojenie na minimum brumu), elewacja
+   +50 V zostaje. Klasyka (Marantz 7); ryzyko resztkowego przydźwięku.
+2. **Bateria (era-correct "bateria A")**: AGM/żel 6 V / 10–12 Ah w obudowie.
+   DC idealnie czyste (zero tętnień). 6–7 h grania przy rozładowaniu do 50%.
+   Rygory: TYLKO AGM/żel (szczelny), bezpiecznik BEZPOŚREDNIO przy zacisku
+   (ołów oddaje setki A w zwarcie), obejma do dna (masa sprzężona sztywno =
+   + stabilność, − mikrofonowanie), z dala od ciepła lamp.
+   Ładowanie: ładowarka ZEWNĘTRZNA (krzem poza obudową — nie jest częścią
+   urządzenia), etapowa z trybem float 6,75–6,9 V — akumulator może wisieć
+   na buforze bez ograniczeń (jak w UPS). Gniazdo ładowania z tyłu.
+   Przełącznik dwupozycyjny PRACA/ŁADOWANIE na froncie (2-biegunowy, 6 V DC,
+   bez trybu trzeciego — float załatwia sprawę).
+   **Strażnik baterii**: przekaźnik z cewką 230 V AC za wyłącznikiem
+   sieciowym, styk szeregowo bateria→żarzenie — sieć wyłączona = bateria
+   odcięta (nie da się jej zapomnieć w pozycji PRACA). Drugi styk (NC) tego
+   samego przekaźnika = rozładowanie B+ (funkcja K1 bez diody gaszącej;
+   dla cewki AC snubber RC zamiast diody).
+   **Woltomierz na froncie**: miernik wychyłowy + rezystor-mnożnik, wpięty
+   ZA przekaźnikiem (wskazuje tylko podczas grania — brak stałego poboru);
+   zielona strefa 6,0–6,4 V jako "wskaźnik paliwa".
+
+**Reszta zamian:** K2/K3+Q1 (muting) → zbędne przy wolnym starcie EZ81
+(ew. przekaźnik termiczny Amperite, NOS). NTC → rezystor drutowy 22–47R
+w pierwotnym albo nic. Warystor → wypada (ceramika półprzewodnikowa).
+Ground breaker: bez diod — 10R∥100n (kompromis) albo masa na sztywno do
+chassis przy wejściach (jak vintage). Neonówka, snubbery RC, bleedery,
+dławiki — zostają (czysty old-tech).
+
+**Rekomendacja:** RIAA budować wg rev E (krzem tylko usługowo w zasilaczu);
+wariant purystyczny rozważyć dla końcówki mocy (GZ34 = klasyka, żarzenie AC
+tam bezproblemowe, trafo z odczepem i tak potrzebne). Bateria żarzenia —
+najciekawsza do ew. "rev P" tego RIAA, jeśli przyjdzie ochota na budowę #2.
+
 ## Otwarte decyzje
 
 - Przełącznik wkładek MM/MC/PIEZO (SUT + tłumik) — do decyzji; na razie MM.
 - Dławik L1 vs rezystor 1k 5W — budżet.
 - Rev E: własny symbol trafo EI84, zasilacz przerysowany (czytelny układ).
+- Wariant purystyczny (patrz sekcja) — decyzja: rev E teraz, puryzm ew. później/w końcówce.
 - Wymiary obudowy — po rozmowie ze stolarzem.
 - Czy Sony ma PRE OUT/MAIN IN → kolejność budowy pudełka 2 i 3.
