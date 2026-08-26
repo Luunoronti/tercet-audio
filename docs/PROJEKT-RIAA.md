@@ -179,7 +179,46 @@ Decyzje do podjęcia przy budowie: filtr IEC zintegrowany czy osobny moduł;
 czy foliować drewno; czy RC na wejściach od razu, czy dopiero jeśli
 słychać RF (wersja purystyczna: dodawać tylko to, co potrzebne).
 
-## Wariant purystyczny (zero półprzewodników) — opcja do decyzji
+## Wariant purystyczny (zero półprzewodników) — **DECYZJA: TO BUDUJEMY**
+
+**Decyzja (2026-08-26): wersja purystyczna (rev P) jest wersją docelową
+do budowy.** Rev E zostaje w repo jako udokumentowana alternatywa
+(krzem usługowo w zasilaczu) — nie kasować.
+
+### Transformatory: DWA identyczne EI84 100VA (decyzja)
+
+Nie znaleziono trafo 2×230 V z odczepem — zamiast tego **dwa identyczne
+trafa EI84/42 100VA** (to samo, które już kupione do rev E: 230 V 0,3 A /
+24 V 0,1 A / 0-6,3-7 V 4 A):
+
+- **Pierwotne obu — równolegle** do sieci (za F1, SW1, R34 — wspólne).
+- **Wtórne 230 V — szeregowo**; punkt połączenia = odczep środkowy → GND.
+  Końce skrajne → anody EZ81. ⚠ **FAZOWANIE przy pierwszym uruchomieniu**
+  (przez żarówkę szeregową): połączyć po jednym końcu wtórnych, zmierzyć
+  między pozostałymi — **~460 V AC = dobrze**, ~0 V = odwrócić końcówki
+  jednego uzwojenia. Między anodami ~650 V szczytowo — przewody o dobrej
+  izolacji; EZ81 w limicie (2×350 V RMS).
+- **6,3 V trafa nr 1** → żarzenie EZ81, dowiązane klasycznie do katody
+  (znika problem +300 V na okablowaniu oświetlenia — patrz niżej).
+- **6,3 V trafa nr 2 — wolne** → zasila OŚWIETLENIE lamp (opcja):
+  izolowane, na potencjale masy, zero kompromisów.
+- Uzwojenia 24 V i odczepy 7 V — niewykorzystane.
+- **Bezpiecznik F1: T800mA–1A zwłoczny** (dwa rdzenie EI = podwójny prąd
+  rozruchu); R34 22R zostaje, wspólny.
+- Obciążenie B+ ~25–30 mA przy uzwojeniach 0,3 A → trafa prawie bez
+  obciążenia, B+ wyjdzie raczej ~340 V niż 300 V — **droppery dostroić
+  przy uruchomieniu** (pomiar, ew. zwiększyć R18/R19).
+- Montaż: oba trafa jak najdalej od wejść i V1, osie uzwojeń obrócone
+  o 90° względem siebie (minimalne sprzężenie brumu). Waga: ~4 kg samych
+  trafo — dno obudowy musi to unieść.
+- **Żarzenie z baterii prowadzić „gwiazdą"**: osobna skręcona para od
+  baterii do każdej lampy (nie łańcuszkiem) — prąd jednej lampy nie płynie
+  przewodem drugiej.
+
+**TODO (etap KiCad przez MCP/Konnect):** przerysować schemat rev P
+pod dwa transformatory (T1+T2, jak wyżej; notka o fazowaniu na schemacie,
+oświetlenie z 6,3 V T2) + zaktualizować BOM. Schemat w repo pokazuje
+jeszcze jedno trafo 2×230 V CT.
 
 Tor audio już jest w 100% lampowo-bierny; zmiany dotyczą wyłącznie zasilacza.
 
@@ -187,7 +226,8 @@ Tor audio już jest w 100% lampowo-bierny; zmiany dotyczą wyłącznie zasilacza
 uzwojenie anodowe z odczepem środkowym (2×230 V) + uzwojenie żarzenia
 prostownika. Bonus: naturalny miękki start (katoda grzeje się ~15 s,
 B+ wstaje po lampach audio) — znika potrzeba układu wyciszania. Filtr LC
-(dławik obowiązkowy). Kupione trafo EI84 NIE pasuje do tego wariantu.
+(dławik obowiązkowy). Odczep środkowy robimy z DWÓCH traf EI84 — patrz
+podsekcja „Transformatory" wyżej.
 
 **Żarzenie — prostowanie lampą NIE działa (rachunek):** lampy prostownicze
 to wysokie V / małe I; przy 6,3 V/0,9 A spadek ~20 V na bańce oznacza
@@ -222,10 +262,9 @@ Ground breaker: bez diod — 10R∥100n (kompromis) albo masa na sztywno do
 chassis przy wejściach (jak vintage). Neonówka, snubbery RC, bleedery,
 dławiki — zostają (czysty old-tech).
 
-**Rekomendacja:** RIAA budować wg rev E (krzem tylko usługowo w zasilaczu);
-wariant purystyczny rozważyć dla końcówki mocy (GZ34 = klasyka, żarzenie AC
-tam bezproblemowe, trafo z odczepem i tak potrzebne). Bateria żarzenia —
-najciekawsza do ew. "rev P" tego RIAA, jeśli przyjdzie ochota na budowę #2.
+**Rekomendacja (historyczna, NIEAKTUALNA):** pierwotnie rekomendowane było
+rev E; decyzją z 2026-08-26 budujemy rev P (patrz nagłówek sekcji).
+Kupione trafo EI84 zostaje wykorzystane — jako jedno z DWÓCH (patrz wyżej).
 
 ## Pomysły podpatrzone w innych konstrukcjach (RS Tube_RIAA_6_5)
 
@@ -287,6 +326,7 @@ gdzie zapasu wzmocnienia jest dużo.
 - Przełącznik wkładek MM/MC/PIEZO (SUT + tłumik) — do decyzji; na razie MM.
 - Dławik L1 vs rezystor 1k 5W — budżet.
 - Rev E: własny symbol trafo EI84, zasilacz przerysowany (czytelny układ).
-- Wariant purystyczny (patrz sekcja) — decyzja: rev E teraz, puryzm ew. później/w końcówce.
+- ~~Wariant purystyczny~~ **ZDECYDOWANE (2026-08-26): budujemy rev P**; drugie trafo EI84 do kupienia.
+- TODO: przerysowanie schematu rev P pod dwa trafa + BOM — etap KiCad przez MCP (Konnect).
 - Wymiary obudowy — po rozmowie ze stolarzem.
 - Czy Sony ma PRE OUT/MAIN IN → kolejność budowy pudełka 2 i 3.
