@@ -132,6 +132,20 @@ Obecny sprzęt: gramofon Technics (wkładka MM), tani RIAA tranzystorowy
 - TBD po wymiarach: DXF płyt (góra lustrzana, tył, front ×3), layout PCB
   zasilacza, rysunek rozmieszczenia, BOM zakupowy.
 
+## Oświetlenie lamp (opcja, oba warianty)
+
+Miniaturowe żarówki 6,3 V/0,1 A (T1¼, E5/E10) pod podstawkami — światło przez
+otwór po środkowym styku "shield" (nieużywany w noval; usunąć lub podstawka
+z pustą tulejką) + przez szczelinę wokół bańki. Jasność: szeregowy REGULOWANY
+rezystor drutowy 0–22R/10 W (z obejmą), strojony od środka. Wyłącznik SPST
+(OŚWIETLENIE) na tylnej ściance. Przewód: skrętka w ekranie, ekran do GND
+tylko od strony zasilacza. Zasilanie: rev E — wolny odczep 6,3 V AC;
+rev P — uzwojenie 6,3 V EZ81 pod warunkiem dowiązania go do GND zamiast do
+katody (Vhk = −300 V, limit EZ81 500 V) — inaczej oświetlenie na +300 V.
+Montaż podstawek: otwór w płycie 26–28 mm, podstawka pod płytą na tulejkach
+5–8 mm → pierścieniowa szczelina = kominek wentylacyjny + poświata
+(podstawka przykręcona na styk do płyty zamyka otwór — tak NIE robić).
+
 ## TODO: filtrowanie zakłóceń (do ogarnięcia przed/na etapie budowy)
 
 Temat otwarty — zakłócenia z dwóch kierunków, oba do rozwiązania:

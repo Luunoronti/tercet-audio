@@ -109,6 +109,27 @@ Metalizowane 0,6 W, o ile nie zaznaczono inaczej.
 | — | przewód żarzenia | — | skręcona para, min. 1 mm² (0,9 A) |
 | — | turret board, tulejki, dystanse | — | wg ustaleń montażowych (`docs/PROJEKT-RIAA.md`) |
 
+## Oświetlenie lamp (opcja dekoracyjna)
+
+| Ilość | Element | Ref | Uwagi |
+|---|---|---|---|
+| 3 | żarówka miniaturowa 6,3 V / 0,1 A | LA1–LA3 | T1¼ / trzonek E5 lub E10; pod podstawkami lamp audio (przez otwór po środkowym styku „shield") |
+| 3 | oprawka E5/E10 | — | montaż pod podstawką |
+| 1 | rezystor drutowy **regulowany** 0–22 Ω / 10 W | R35 | z obejmą/suwakiem; szeregowo — jasność ustawiana **od środka**, raz na stałe |
+| 1 | wyłącznik SPST | SW3 | tylna ścianka: OŚWIETLENIE ON/OFF |
+| — | przewód: skrętka w ekranie | — | ekran do GND **tylko z jednej strony** (od zasilacza); trasa po kątach, z dala od wejść |
+
+**Zasilanie:** rev E — odczep 6,3 V AC trafo (izolowany od DC żarzenia).
+Rev P — uzwojenie 6,3 V EZ81, **warunek:** koniec uzwojenia dowiązać do GND
+zamiast do katody (Vhk EZ81 = −300 V, w limicie 500 V) — inaczej okablowanie
+oświetlenia siedzi na +300 V!
+
+**Montaż pod kominek + poświatę:** otwór w płycie 26–28 mm (większy niż
+bańka ~22 mm), podstawka **pod** płytą na tulejkach dystansowych 5–8 mm →
+pierścieniowa szczelina wokół szkła przepuszcza powietrze i światło;
+pierścień ozdobny maskuje krawędź otworu. Środkowy styk „shield" podstawki
+(nieużywany przez lampy noval) usunąć lub wybrać podstawkę z pustą tulejką.
+
 ## Uwagi końcowe
 
 1. **Ground breaker bez diod** (10R ∥ 100n) — kompromis wariantu purystycznego;

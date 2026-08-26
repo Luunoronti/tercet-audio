@@ -123,6 +123,28 @@ ZŁĄCZA / MECHANIKA / SIEĆ
  —       turret board,        —             wg ustaleń montażowych
          tulejki, dystanse                  (docs/PROJEKT-RIAA.md)
 
+OSWIETLENIE LAMP (opcja dekoracyjna)
+--------------------------------------------------------------------------------
+ 3 szt   zarowka miniaturowa  LA1-LA3       T1-1/4 / E5 lub E10, 6,3 V / 0,1 A;
+                                            pod podstawkami lamp audio (przez
+                                            otwor po srodkowym styku "shield")
+ 3 szt   oprawka E5/E10       —             montaz pod podstawka
+ 1 szt   rezystor drutowy     R35           0-22R / 10 W, regulowany (z obejma/
+         regulowany                         suwakiem); szeregowo, ustawienie
+                                            jasnosci OD SRODKA (raz, na stale)
+ 1 szt   wylacznik SPST       SW3           tylna scianka: OSWIETLENIE ON/OFF
+ —       przewod: skretka     —             ekran do GND TYLKO z jednej strony
+         w ekranie                          (od zasilacza); trasa po katach,
+                                            z dala od wejsc
+ Zasilanie: rev E -> odczep 6,3 V AC trafo (izolowany od DC zarzenia).
+ Rev P -> uzwojenie 6,3 V EZ81, ALE WARUNEK: koniec uzwojenia dowiazac
+ do GND zamiast do katody (Vhk EZ81 = -300 V, w limicie 500 V) — inaczej
+ okablowanie oswietlenia siedzi na +300 V!
+ Montaz podstawek pod kominek+poswiate: otwor w plycie 26-28 mm (wiekszy
+ niz banka), podstawka POD plyta na tulejkach 5-8 mm -> pierscieniowa
+ szczelina wokol szkla (powietrze + swiatlo). Pierscien ozdobny maskuje
+ krawedz otworu.
+
 UWAGI KOŃCOWE
 --------------------------------------------------------------------------------
 1. Ground breaker w tym wariancie BEZ diod (10R || 100n) — patrz notka na
