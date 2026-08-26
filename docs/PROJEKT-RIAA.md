@@ -227,6 +227,61 @@ wariant purystyczny rozważyć dla końcówki mocy (GZ34 = klasyka, żarzenie AC
 tam bezproblemowe, trafo z odczepem i tak potrzebne). Bateria żarzenia —
 najciekawsza do ew. "rev P" tego RIAA, jeśli przyjdzie ochota na budowę #2.
 
+## Pomysły podpatrzone w innych konstrukcjach (RS Tube_RIAA_6_5)
+
+Przejrzany zewnętrzny schemat (Eagle, 4 stopnie/kanał, zasilacz na
+IRF840+LM317 — zasilacza NIE kopiujemy). Dwa patenty warte zapisania:
+
+### 1. Wybierana pojemność wejściowa MM (zamiast stałego C1 150p)
+
+W RS: blok kondensatorów 47/100/150/330 pF załączanych przełącznikiem DIP
+równolegle do wejścia. Sens: wkładka MM + pojemność kabla + pojemność
+wejściowa tworzą rezonans z indukcyjnością wkładki — producenci podają
+zalecane obciążenie (typowo 150–400 pF ŁĄCZNIE z kablem). Regulacja
+pozwala dostroić górę pasma pod konkretną wkładkę i kabel.
+
+**Adaptacja do TERCET (opcja, do decyzji przy budowie):**
+- NIE DIP-switch (słaby kontakt, nie na panel) — zamiast tego **przełącznik
+  obrotowy 1×4 lub 2×6 (wersja stereo: 2-sekcyjny na wspólnej osi)**,
+  lutowany bezpośrednio: kondensatory wprost na łukowych stykach
+  przełącznika, wspólny koniec na pierścień masy — zero dodatkowego
+  okablowania, minimalna pojemność montażowa.
+- Wartości propozycja: 47p / 100p / 150p / 220p (mika lub C0G, 2%);
+  pozycje można opisać na panelu tylnym przy RCA.
+- Alternatywa tania: pozostawić stałe 150p (obecny C1), a przełącznik
+  dodać dopiero, gdy zmiana wkładki tego zażąda. Montaż przy samych
+  gniazdach RCA, krótkie drogi.
+
+### 2. Nieodblokowane katody (degeneracja katodowa)
+
+W RS wszystkie 4 stopnie mają Rk=2k2 **bez kondensatora bocznikującego** —
+lokalne sprzężenie zwrotne prądowe. Zapisane jako technika do świadomego
+użycia (opis mechanizmu poniżej); w TERCET rev E/P zostają katody
+zablokowane (1k5 + 220µ), bo przy 2 stopniach + CF potrzebujemy pełnego
+wzmocnienia ~40 dB — degeneracja wymusiłaby dodatkowy stopień (jak w RS: 4).
+
+**Mechanizm:** bez kondensatora prąd sygnałowy płynący przez Rk wytwarza
+na katodzie napięcie zgodne w fazie z siatką → skuteczne Ugk maleje →
+wzmocnienie spada z A = µ·Ra/(rp+Ra) do A = µ·Ra/(rp+Ra+(µ+1)·Rk).
+
+**Zalety:** lepsza liniowość (mniej harmonicznych, degeneracja linearyzuje
+charakterystykę), mniejsza wrażliwość na rozrzut egzemplarzy lampy
+(wzmocnienie zależy bardziej od Rk niż od µ i rp — łatwiej sparować
+kanały), brak elektrolitu w torze sygnału (elektrolity katodowe to
+najczęściej wymieniany "podejrzany" element brzmieniowy), lepsze
+zachowanie przy przesterowaniu.
+
+**Koszty:** dużo mniejsze wzmocnienie na stopień (ECC83, Ra=100k, Rk=2k2:
+~57× → ~19×), wyższa impedancja wyjściowa stopnia (rp rośnie o (µ+1)·Rk),
+minimalnie wyższy szum odniesiony do wejścia (mniej wzmocnienia w pierwszym
+stopniu = szum kolejnych stopni waży więcej). Dlatego w RIAA pierwszy
+stopień zwykle blokuje się zawsze.
+
+**Gdzie ma sens u nas:** ew. częściowa degeneracja w DRUGIM stopniu
+(katoda dzielona: część Rk zablokowana, część nie) — do rozważenia przy
+strojeniu; oraz w przyszłej końcówce mocy / przedwzmacniaczu liniowym,
+gdzie zapasu wzmocnienia jest dużo.
+
 ## Otwarte decyzje
 
 - Przełącznik wkładek MM/MC/PIEZO (SUT + tłumik) — do decyzji; na razie MM.
