@@ -27,64 +27,64 @@ TRANSFORMATOR I DŁAWIK
 
 REZYSTORY — tor audio (metalizowane 0,6 W, o ile nie zaznaczono; RIAA: 1%)
 --------------------------------------------------------------------------------
- 2 szt   47k                  R1, R101      obciążenie wejścia MM
- 2 szt   470R                 R2, R102      grid stopper wejściowy (lutować
+ 2 szt   47k   1%             R1, R101      obciążenie wejścia MM
+ 2 szt   470R  5%             R2, R102      grid stopper wejściowy (lutować
                                             wprost na pinie gniazda lampy)
- 4 szt   100k                 R3, R9,       anodowe; 1 W dla zapasu napięciowego
+ 4 szt   100k  1%             R3, R9,       anodowe; 1 W dla zapasu napięciowego
                               R103, R109
- 4 szt   1k5                  R4, R10,      katodowe stopni wzmacniających
+ 4 szt   1k5   1%             R4, R10,      katodowe stopni wzmacniających
                               R104, R110
  2 szt   255k  1%             R5, R105      szeregowy RIAA (E96; alternatywnie
                                             249k + 6k2)
  2 szt   33k   1%             R6, R106      RIAA (bocznik szeregowy)
- 4 szt   1M                   R7, R11,      grid leak
+ 4 szt   1M    5%             R7, R11,      grid leak
                               R107, R111
- 4 szt   1k                   R8, R12,      grid stopper (na pinach gniazd)
+ 4 szt   1k    5%             R8, R12,      grid stopper (na pinach gniazd)
                               R108, R112
- 2 szt   2k2                  R13, R113     katodowe wtórników (bias tap)
- 2 szt   47k   1 W            R14, R114     katodowe wtórników (obciążenie)
- 2 szt   470k                 R15, R115     upływowe wyjścia
+ 2 szt   2k2   1%             R13, R113     katodowe wtórników (bias tap)
+ 2 szt   47k   1% 1 W         R14, R114     katodowe wtórników (obciążenie)
+ 2 szt   470k  5%             R15, R115     upływowe wyjścia
 
 REZYSTORY — zasilacz i pomocnicze
 --------------------------------------------------------------------------------
- 2 szt   10k  1 W             R18, R118     dropper B+3→B+2 (po jednym na kanał)
- 2 szt   22k  1 W             R19, R119     dropper B+2→B+1
- 4 szt   470k 1 W             R26, R27,     bleedery (wolne rozładowanie)
+ 2 szt   10k  5% 1 W          R18, R118     dropper B+3→B+2 (po jednym na kanał)
+ 2 szt   22k  5% 1 W          R19, R119     dropper B+2→B+1
+ 4 szt   470k 5% 1 W          R26, R27,     bleedery (wolne rozładowanie)
                               R126, R127
- 1 szt   470k (1 W zapas)     R22           dzielnik elewacji żarzenia (+50 V)
- 1 szt   100k                 R23           dzielnik elewacji
- 1 szt   4k7  10 W drutowy    R24           rozładowanie B+ (styk NC K1)
- 1 szt   10R  5 W drutowy     R25           ground breaker
- 1 szt   22R  5 W drutowy     R34           ogranicznik rozruchu w pierwotnym
- 1 szt   220k (0,6 W)         R32           szeregowy neonówki
- 1 szt   100R                 R33           snubber cewki K1
- 1 szt   wg miernika          R30           mnożnik woltomierza M1 (dobrać:
+ 1 szt   470k 5% (1 W zapas)  R22           dzielnik elewacji żarzenia (+50 V)
+ 1 szt   100k 5%              R23           dzielnik elewacji
+ 1 szt   4k7  5% 10 W drut.   R24           rozładowanie B+ (styk NC K1)
+ 1 szt   10R  5% 5 W drut.    R25           ground breaker
+ 1 szt   22R  5% 5 W drut.    R34           ogranicznik rozruchu w pierwotnym
+ 1 szt   220k 5% (0,6 W)      R32           szeregowy neonówki
+ 1 szt   100R 5%              R33           snubber cewki K1
+ 1 szt   wg miernika, 1%      R30           mnożnik woltomierza M1 (dobrać:
                                             pełna skala ~8 V)
 
 KONDENSATORY — tor audio
 --------------------------------------------------------------------------------
- 2 szt   150p  mika/C0G       C1, C101      obciążenie wkładki MM
- 4 szt   220u / 25 V elektr.  C2, C6,       bocznikowanie katod
+ 2 szt   150p  2% mika/C0G    C1, C101      obciążenie wkładki MM
+ 4 szt   220u/25V el. ±20%    C2, C6,       bocznikowanie katod
                               C102, C106
- 4 szt   100n / 630 V PP      C3, C7,       sprzęgające (polipropylen)
+ 4 szt   100n/630V PP 5%      C3, C7,       sprzęgające (polipropylen)
                               C103, C107
- 2 szt   3n3  1% PP           C4, C104      RIAA
+ 2 szt   3n3  1% PP           C4, C104      RIAA (1% obowiązkowo)
  2 szt   9n62 1% PP           C5, C105      RIAA; złożyć: 8n2 + 1n2 + 220p
                                             (równolegle, wszystkie 1%)
- 2 szt   2u2 / 400 V PP       C8, C108      wyjściowe
+ 2 szt   2u2/400V PP 5%       C8, C108      wyjściowe
 
 KONDENSATORY — zasilacz
 --------------------------------------------------------------------------------
- 1 szt   47u / 500 V          C9            PIERWSZY po EZ81 — max 50 uF, limit
+ 1 szt   47u/500V el. ±20%    C9            PIERWSZY po EZ81 — max 50 uF, limit
                                             lampy! Nie zwiększać.
- 1 szt   100u / 500 V         C10           za dławikiem (B+3)
+ 1 szt   100u/500V el. ±20%   C10           za dławikiem (B+3)
          (C9+C10 opcjonalnie jako kubek wielosekcyjny 50+100/500 V na płycie
           górnej, obejma z przekładką izolacyjną)
- 4 szt   47u / 400 V          C12, C13,     filtry B+ per kanał
+ 4 szt   47u/400V el. ±20%    C12, C13,     filtry B+ per kanał
                               C112, C113
- 1 szt   22u / 100 V          C17           elewacja żarzenia
- 1 szt   100n / 630 V         C18           ground breaker
- 1 szt   100n / 630 V         C21           snubber cewki K1
+ 1 szt   22u/100V el. ±20%    C17           elewacja żarzenia
+ 1 szt   100n/630V PP 10%     C18           ground breaker
+ 1 szt   100n/630V PP 10%     C21           snubber cewki K1
 
 ŻARZENIE Z BATERII
 --------------------------------------------------------------------------------
@@ -129,8 +129,12 @@ UWAGI KOŃCOWE
    schemacie; alternatywa vintage: masa na sztywno do chassis przy wejściach.
 2. Wszystkie elementy przy B+ : napięcia robocze jak w liście (400/500/630 V) —
    nie schodzić niżej.
-3. Elementy RIAA (R5/R6, C4/C5) — tolerancja 1% decyduje o zgodności korekcji
-   i balansie kanałów; kupić po kilka sztuk i sparować miernikiem L/R.
+3. Tolerancje: 1% tam, gdzie wartość ustala punkt pracy lub korekcję
+   (RIAA: R5/R6, C4/C5 — obowiązkowo; katody i anody — dla powtarzalności
+   kanałów); 5% wystarcza dla grid stopperów, upływowych, dropperów
+   i bleederów; elektrolity ±20% (taka jest ich natura — wartości filtrów
+   mają duży zapas). Elementy RIAA kupić po kilka sztuk i sparować
+   miernikiem L/R.
 4. Napięcia do ~330 V DC. Przed pracą: odczekać na rozładowanie (K1/R24 +
    bleedery) i SPRAWDZIĆ woltomierzem każdą sekcję (<50 V).
 ================================================================================
