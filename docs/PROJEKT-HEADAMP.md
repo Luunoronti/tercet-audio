@@ -106,6 +106,50 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Paper: na razie zostaje **A3** (kanal P miesci sie, max Y ~275 mm);
   decyzja o A2 odlozona do Etapu 5b (zasilacz), patrz TODO.
 
+## Decyzje - Etap 5b (zasilacz, 2026-09-07)
+- Zasilacz narysowany na tym samym arkuszu co audio (nie osobny arkusz
+  hierarchiczny), layout DRUTAMI jak riaa/gen.py, pod kanalem P i
+  grzaniem lamp. Numeracja 3xx (R301.., C301.., D301..), z wyjatkami
+  nazwanymi wprost (F1, SW1, J1, RT1, RV301, NE1, T301, L1, K1, U301) -
+  zgodnie z poleceniem etapu.
+- **Paper zmieniony z A3 na A2** (DECYZJA) - zasilacz + oba kanaly +
+  grzanie nie miesciy sie w A3 (docelowa wysokosc tresci ~427mm).
+- **B+ (+300V) WSPOLNY dla obu kanalow** (bez podzialu per-kanal jak w
+  RIAA) - headamp ma mniejszy pobor pradu (2x EL84 + ECC82, bez
+  wtornika mocy), jeden wezel +300V po filtrze CLC wystarcza; brak
+  osobnych R/C dropperow per kanal.
+- Transformator: `Device:Transformer_1P_2S` (2 uzwojenia wtorne - HT +
+  zarzenie), NIE customowy symbol jak w RIAA (headamp nie potrzebuje
+  uzwojenia 24V rezerwowego ani odczepu 6,3V - tylko jedno uzwojenie
+  zarzenia 7V/3A na 3 lampy, patrz common/README.md).
+  Wartosc pola Value: "EI84 100VA: 230V : 250V/0,15A + 7V/3A".
+- Mostek HT: 4x UF4007 + snubber RC 470R/10n-1kV przez uzwojenie (1:1
+  z riaa/common). Filtr: C 220u/400V -> L1 (dlawik, etykieta wartosci
+  "5-10H 100mA", uwaga: Lp OPT >=25H to co innego - dlawik zasilacza
+  nie ma zwiazku z indukcyjnoscia pierwotna OPT) -> C 220u/400V = +300V.
+  Bleeder 220k/2W (R303) na wyjsciu (zamyka TODO 5 z listy glownej).
+- Elewacja zarzenia: 220k (R304, z +300V) -> ELEV -> 47k (R305) -> GND;
+  10u/100V (C304) ELEV->GND. Wartosci z PROJEKT-HEADAMP (220k/47k),
+  NIE z RIAA (470k/100k) - inny prad/napiecie docelowe (+50V dla 6,3V
+  vs RIAA gdzie wtornik ma Vhk wiekszy).
+- Rozladowanie K1: 1:1 z riaa/common (przekaznik 9V cewka V_RAW/ELEV,
+  dioda 1N4007 gaszaca, styk NC(11-12) -> R306 4k7/10W -> GND, COM(12)
+  na +300V, NO(14) niepodlaczony).
+- Zarzenie: 7V -> 4x 1N5822 -> 10000u/16V (=V_RAW) -> 470u/25V ->
+  LD1085 (symbol Regulator_Linear:LM317_TO-220, adnotacja "LD1085
+  (LDO)") -> 240R/976R -> 6,3V DC (HEAT_A/HEAT_B), 10u/25V + 1u
+  odsprzegajace. Wartosci identyczne jak common/riaa.
+- PWR_FLAG: zasada "jeden na siec" - usuniete zdublowane flagi (HEAT_A
+  ma juz sterownik U301.VO, drugi punkt zwarty do GND przez OPT
+  sekundarny nie potrzebuje wlasnej flagi skoro siec GND ma juz inna).
+  Dodana 1 nowa flaga na V_RAW (mostek Schottky to elementy bierne,
+  ERC wymaga sterownika dla U301.VI).
+- ERC: multiple_net_names ELEV/HEAT_B (heater powrot zwarty do ELEV,
+  jak w common/riaa) - OSTRZEZENIE OCZEKIWANE, zaakceptowane zgodnie
+  z poleceniem etapu.
+- Ground breaker: 1:1 z common/riaa (10R/5W + 2x1N5408 antyrownolegle
+  + 100n/630V), jedyny styk masy sygnalowej (GND) z PE/chassis.
+
 ## Stan realizacji (2026-09-07)
 - Schemat KiCad `headamp/headamp.kicad_sch`: kanał L kompletny, zbudowany
   przez Konnect; ERC 0 błędów (ostrzeżenia oczekiwane: unit B ECC82 wolny,

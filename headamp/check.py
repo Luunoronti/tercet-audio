@@ -137,6 +137,64 @@ diff(('RV1', '1'), ('RV1', '4'))          # IN_L != IN_R
 diff(('T1', '4'), ('T201', '4'))          # OUT_L != OUT_R
 diff(('U1', '6'), ('U1', '1'))            # anoda kanalu L != anoda kanalu P (na tej samej lampie)
 
+# =======================================================================
+#  ZASILACZ (Etap 5b) - asercje wg PROJEKT-HEADAMP.md / polecenia etapu
+# =======================================================================
+
+# +300V - wspolna szyna dla obu kanalow + zasilacza
+same(('R5', '2'), ('R205', '2'), ('T1', '1'), ('T201', '1'), ('L1', '2'),
+     ('C303', '1'), ('R303', '1'), ('R304', '1'), ('K1', '12'))
+
+# ELEV (elewacja zarzenia +50V wzgledem HEAT_A/HEAT_B)
+same(('R304', '2'), ('R305', '1'), ('C304', '1'), ('K1', 'A2'), ('D305', '2'))
+
+# HEAT_A / HEAT_B - wspolny sterownik LD1085 (U301), 3 lampy
+same(('U301', '2'), ('U1', '4'), ('U1', '5'), ('U2', '4'), ('U202', '4'))     # HEAT_A
+same(('U1', '9'), ('U2', '5'), ('U202', '5'), ('R308', '2'), ('C307', '2'))   # HEAT_B
+
+# V_RAW - wyjscie mostka Schottky zarzenia, zasila K1 i U301.VI
+same(('D306', '1'), ('D307', '1'), ('C305', '1'), ('C306', '1'), ('U301', '3'),
+     ('K1', 'A1'), ('D305', '1'))
+
+# GND wspolna (sygnalowa) - potwierdzenie ze kanal L, kanal P i zasilacz
+# sa na TEJ SAMEJ sieci (nie oddzielnych GND-ach)
+same(('R1', '2'), ('R201', '2'), ('C302', '2'), ('C303', '2'), ('R306', '2'))
+
+# siec 230V (mains)
+same(('J1', '1'), ('F1', '1'))
+same(('F1', '2'), ('SW1', '1'))
+same(('SW1', '2'), ('RT1', '1'))
+same(('RT1', '2'), ('T301', '1'), ('RV301', '1'), ('R301', '1'))
+same(('J1', '2'), ('SW1', '3'))
+same(('SW1', '4'), ('T301', '2'), ('RV301', '2'), ('NE1', '1'))
+same(('R301', '2'), ('NE1', '2'))
+
+# mostek HT + filtr CLC
+same(('T301', '3'), ('D301', '2'), ('D303', '1'), ('R302', '1'))
+same(('T301', '4'), ('D302', '2'), ('D304', '1'), ('C301', '2'))
+same(('D301', '1'), ('D302', '1'), ('C302', '1'), ('L1', '1'))
+same(('D303', '2'), ('D304', '2'), ('C302', '2'))
+
+# zarzenie: 7V -> mostek 1N5822 -> V_RAW -> LD1085 -> HEAT_A/HEAT_B
+same(('T301', '5'), ('D306', '2'), ('D308', '1'))
+same(('T301', '6'), ('D307', '2'), ('D309', '1'))
+same(('D308', '2'), ('D309', '2'), ('C305', '2'), ('C306', '2'))
+same(('U301', '1'), ('R307', '2'), ('R308', '1'))
+
+# ground breaker (masa <-> PE, jedyny styk)
+same(('J1', '3'), ('R309', '2'), ('D310', '2'), ('D311', '1'), ('C309', '2'))
+same(('R309', '1'), ('D310', '1'), ('D311', '2'), ('C309', '1'), ('R1', '2'))
+
+diff(('R5', '2'), ('R1', '2'))            # +300V != GND
+diff(('R304', '2'), ('R1', '2'))          # ELEV != GND
+diff(('D306', '1'), ('R304', '2'))        # V_RAW != ELEV
+diff(('U301', '2'), ('U1', '9'))          # HEAT_A != HEAT_B
+diff(('R5', '2'), ('R304', '2'))          # +300V != ELEV
+diff(('J1', '1'), ('J1', '2'))            # L != N
+diff(('J1', '2'), ('J1', '3'))            # N != PE
+diff(('J1', '1'), ('J1', '3'))            # L != PE
+diff(('J1', '3'), ('R1', '2'))            # PE != GND (ground breaker rozdziela)
+
 print('Nety:', len(nets))
 if fails:
     print('FAILURES:')
