@@ -148,8 +148,8 @@ def pwrflag(x, y, rot=0):
     place('#FLG%d' % len(SYMS), 'power:PWR_FLAG', 'PWR_FLAG', x, y, rot=rot)
 
 
-def pe(x, y):
-    place('#PE%d' % len(SYMS), 'power:Earth_Protective', 'Earth_Protective', x, y)
+def pe(x, y, rot=0):
+    place('#PE%d' % len(SYMS), 'power:Earth_Protective', 'Earth_Protective', x, y, rot=rot)
 
 
 # =======================================================================
@@ -331,7 +331,8 @@ pwrflag(92.71, 299.72, rot=180)
 LR, NR = 292.1 + 76.2, 311.15 + 76.2          # L rail / N rail
 place('J1', 'Connector:Screw_Terminal_01x03', 'MAINS 230V', 35.56, 294.64 + 76.2, mirror='y',
       fields={'ref_at': (30.48, 287.02 + 76.2, 0), 'val_at': (30.48, 289.56 + 76.2, 0)})
-place('F1', 'Device:Fuse', 'T500mA', 49.53, LR, rot=90)
+place('F1', 'Device:Fuse', 'T500mA', 49.53, LR, rot=90,
+      fields={'ref_at': (49.53, 361.95, 90), 'val_at': (49.53, 358.14, 90)})
 place('SW1', 'Switch:SW_DPST_x2', 'ON/OFF', 58.42, LR, unit=1,
       fields={'ref_at': (54.61, 287.02 + 76.2, 0), 'val_at': (54.61, 289.56 + 76.2, 0)})
 place('SW1', 'Switch:SW_DPST_x2', 'ON/OFF', 58.42, NR, unit=2,
@@ -350,12 +351,13 @@ wire(pin('J1', 2), (43.18, 294.64 + 76.2), (43.18, NR), (53.34, NR))
 wire(pin('SW1', 4, unit=2), (77.47, NR), (88.9, NR), (92.71, NR),
      (92.71, pin('T301', 2)[1]), pin('T301', 2))
 junc((77.47, NR)); junc((88.9, NR))
-# PE
-wire(pin('J1', 3), (41.91, 297.18 + 76.2), (41.91, 299.72 + 76.2), (41.91, 303.53 + 76.2))
-pe(41.91, 303.53 + 76.2)
-wire((41.91, 299.72 + 76.2), (39.37, 299.72 + 76.2)); junc((41.91, 299.72 + 76.2))
-pwrflag(39.37, 299.72 + 76.2)
-text("PE -> wlasna sruba M4 na chassis", 27.94, 310.13 + 76.2, 1.27)
+# PE (flaga i symbol PE rozsuniete, zeby ich Value nie nachodzily na
+# numery pinow J1 ani na siebie nawzajem)
+wire(pin('J1', 3), (41.91, 297.18 + 76.2), (41.91, 299.72 + 76.2), (41.91, 308.61 + 76.2))
+pe(41.91, 308.61 + 76.2)
+wire((41.91, 299.72 + 76.2), (33.02, 299.72 + 76.2), (33.02, 302.26 + 76.2)); junc((41.91, 299.72 + 76.2))
+pwrflag(33.02, 302.26 + 76.2)
+text("PE -> wlasna sruba M4 na chassis", 22.86, 313.69 + 76.2, 1.27)
 # warystor + neonowka (kontrolka) przez uzwojenie pierwotne, za wylacznikiem
 place('RV301', 'Device:Varistor', 'S14K275', 77.47, 302.26 + 76.2,
       fields={'ref_at': (71.12, 300.99 + 76.2, 0), 'val_at': (69.85, 303.53 + 76.2, 0), 'val_just': 'right'})
@@ -364,12 +366,12 @@ wire(pin('RV301', 2), (77.47, NR))
 place('R301', 'Device:R', '220k', 88.9, 372.11,
       fields={'ref_at': (90.17, 370.84, 90), 'val_at': (90.17, 373.38, 90)})
 place('NE1', 'Device:Lamp_Neon', 'NE-2 (jewel)', 88.9, 381.0,
-      fields={'ref_at': (90.17, 379.73, 0), 'val_at': (90.17, 382.27, 0)})
+      fields={'ref_at': (93.98, 379.73, 0), 'val_at': (93.98, 382.27, 0)})
 wire((88.9, LR), pin('R301', 1))
 wire(pin('R301', 2), pin('NE1', 2))
 wire(pin('NE1', 1), (88.9, NR))
-text("230V/0,15A (HT)", 119.38, 278.13 + 76.2, 1.27)
-text("7V/3A (zarzenie)", 119.38, 316.23 + 76.2, 1.27)
+text("230V/0,15A (HT)", 88.9, 285.75 + 76.2, 1.27)
+text("7V/3A (zarzenie)", 88.9, 309.88 + 76.2, 1.27)
 
 # --- mostek HT (UF4007) + snubber RC + filtr CLC ---
 YP, YM = 276.86 + 76.2, 309.88 + 76.2
@@ -394,17 +396,21 @@ junc(pin('R302', 1)); junc(pin('C301', 2))
 wire(pin('D301', 1), (142.24, YP), (151.13, YP)); junc((142.24, YP))
 wire(pin('D303', 2), (142.24, YM), (146.05, YM)); junc((142.24, YM))
 place('C302', 'Device:C_Polarized', '220u/400V', 151.13, 280.67 + 76.2,
-      fields={'ref_at': (153.67, 285.75 + 76.2, 0), 'val_at': (153.67, 288.29 + 76.2, 0)}, tol='20%')
-place('L1', 'Device:L_Iron', '5-10H 100mA (Lp headamp >=25H, patrz OPT)', 163.83, YP, rot=90,
-      fields={'ref_at': (160.02, 271.78 + 76.2, 0), 'val_at': (172.72, 274.32 + 76.2, 0), 'val_just': 'right'})
+      fields={'ref_at': (153.67, 285.75 + 76.2, 0), 'val_at': (153.67, 288.29 + 76.2, 0),
+              'tol_at': (153.67, 290.83 + 76.2, 0)}, tol='20%')
+place('L1', 'Device:L_Iron', '5-10H 100mA', 163.83, YP, rot=90,
+      fields={'ref_at': (160.02, 271.78 + 76.2, 0), 'val_at': (166.37, 271.78 + 76.2, 0), 'val_just': 'left'})
+text("L1 = dlawik zasilacza (nie mylic z Lp OPT >=25H - patrz T1/T201)", 151.13, 259.08 + 76.2, 1.27)
 place('C303', 'Device:C_Polarized', '220u/400V', 176.53, 280.67 + 76.2,
-      fields={'ref_at': (178.94, 285.75 + 76.2, 0), 'val_at': (178.94, 288.29 + 76.2, 0)}, tol='20%')
+      fields={'ref_at': (178.94, 285.75 + 76.2, 0), 'val_at': (178.94, 288.29 + 76.2, 0),
+              'tol_at': (178.94, 290.83 + 76.2, 0)}, tol='20%')
 wire((151.13, YP), pin('C302', 1)); junc((151.13, YP))
 wire((151.13, YP), pin('L1', 1))
 wire(pin('L1', 2), (176.53, YP)); junc((176.53, YP))
 wire((176.53, YP), pin('C303', 1))
 place('R303', 'Device:R', '220k/2W', 187.96, 280.67 + 76.2,
-      fields={'ref_at': (190.5, 278.13 + 76.2, 0), 'val_at': (190.5, 280.67 + 76.2, 0)}, tol='5%')
+      fields={'ref_at': (189.99, 278.13 + 76.2, 90), 'val_at': (187.96, 278.13 + 76.2, 90),
+              'tol_at': (185.93, 278.13 + 76.2, 90)}, tol='5%')
 wire((176.53, YP), (187.96, YP)); junc((187.96, YP))
 wire((187.96, YP), pin('R303', 1))
 wire(pin('R303', 2), (187.96, YM))
@@ -431,7 +437,8 @@ wire(pin('R304', 2), (210.82, 288.29 + 76.2))
 wire((210.82, 288.29 + 76.2), pin('R305', 1))
 wire(pin('R305', 2), (210.82, YM))
 place('C304', 'Device:C_Polarized', '10u/100V', 218.44, 294.64 + 76.2,
-      fields={'ref_at': (220.98, 296.52 + 76.2, 0), 'val_at': (220.98, 299.06 + 76.2, 0)}, tol='20%')
+      fields={'ref_at': (220.98, 296.52 + 76.2, 0), 'val_at': (220.98, 299.06 + 76.2, 0),
+              'tol_at': (220.98, 301.6 + 76.2, 0)}, tol='20%')
 wire((210.82, 288.29 + 76.2), (218.44, 288.29 + 76.2), pin('C304', 1))
 junc((210.82, 288.29 + 76.2))
 wire(pin('C304', 2), (218.44, YM))
@@ -479,7 +486,8 @@ wire(pin('T301', 6), (119.38, 383.54), (119.38, 403.86), (299.72, 403.86))
 junc((299.72, 403.86))
 place('C305', 'Device:C_Polarized', '10000u/16V', 317.5, 316.23 + 76.2, tol='20%')
 place('C306', 'Device:C_Polarized', '470u/25V', 337.82, 316.23 + 76.2,
-      fields={'ref_at': (331.47, 320.04 + 76.2, 0), 'val_at': (336.55, 323.85 + 76.2, 0), 'val_just': 'right'}, tol='20%')
+      fields={'ref_at': (331.47, 320.04 + 76.2, 0), 'val_at': (336.55, 323.85 + 76.2, 0),
+              'tol_at': (336.55, 326.39 + 76.2, 0), 'val_just': 'right'}, tol='20%')
 place('U301', 'Regulator_Linear:LM317_TO-220', 'LD1085 (LDO)', 351.79, YHP,
       fields={'ref_at': (356.87, 303.53 + 76.2, 0), 'val_at': (356.87, 306.07 + 76.2, 0)})
 wire(pin('D306', 1), (299.72, YHP), (317.5, YHP))
@@ -491,9 +499,13 @@ wire((337.82, YHP), pin('C306', 1))
 wire((337.82, YHP), pin('U301', 3))
 place('R307', 'Device:R', '240R', 364.49, 316.23 + 76.2, tol='1%')
 place('R308', 'Device:R', '976R', 364.49, 326.39 + 76.2,
-      fields={'ref_at': (358.14, 323.85 + 76.2, 0), 'val_at': (356.87, 326.39 + 76.2, 0), 'val_just': 'right'}, tol='1%')
-place('C307', 'Device:C_Polarized', '10u/25V', 372.11, 323.85 + 76.2, tol='20%')
-place('C308', 'Device:C', '1u', 379.73, 316.23 + 76.2)
+      fields={'ref_at': (358.14, 321.31 + 76.2, 0), 'val_at': (356.87, 326.39 + 76.2, 0),
+              'tol_at': (356.87, 328.93 + 76.2, 0), 'val_just': 'right'}, tol='1%')
+place('C307', 'Device:C_Polarized', '10u/25V', 372.11, 323.85 + 76.2,
+      fields={'ref_at': (374.65, 320.04 + 76.2, 0), 'val_at': (374.65, 328.93 + 76.2, 0),
+              'tol_at': (374.65, 331.47 + 76.2, 0)}, tol='20%')
+place('C308', 'Device:C', '1u', 379.73, 316.23 + 76.2,
+      fields={'ref_at': (382.27, 315.29 + 76.2, 0), 'val_at': (382.27, 317.83 + 76.2, 0)})
 wire(pin('U301', 2), (364.49, YHP)); junc((364.49, YHP))
 wire((364.49, YHP), pin('R307', 1))
 wire(pin('U301', 1), (351.79, 320.04 + 76.2), (364.49, 320.04 + 76.2))
@@ -524,19 +536,20 @@ text("Skrecona para na przewodach zarzenia. LD1085: blaszka = VOUT - izolacja od
 
 # --- ground breaker (jedyny styk masy z chassis) ---
 place('R309', 'Device:R', '10R/5W', 45.72, 325.12 + 76.2,
-      fields={'ref_at': (43.18, 316.23 + 76.2, 0), 'val_at': (43.18, 318.77 + 76.2, 0)})
+      fields={'ref_at': (39.37, 401.32, 90), 'val_at': (41.4, 401.32, 90)})
 place('D310', 'Device:D', '1N5408', 55.88, 325.12 + 76.2, rot=270,
-      fields={'ref_at': (50.8, 332.74 + 76.2, 0), 'val_at': (50.8, 335.28 + 76.2, 0)})
+      fields={'ref_at': (58.42, 398.78, 0), 'val_at': (58.42, 401.32, 0)})
 place('D311', 'Device:D', '1N5408', 66.04, 325.12 + 76.2, rot=90,
-      fields={'ref_at': (60.96, 316.23 + 76.2, 0), 'val_at': (60.96, 318.77 + 76.2, 0)})
+      fields={'ref_at': (68.58, 398.78, 0), 'val_at': (68.58, 401.32, 0)})
 place('C309', 'Device:C', '100n/630V', 76.2, 325.12 + 76.2,
-      fields={'ref_at': (71.12, 332.74 + 76.2, 0), 'val_at': (71.12, 335.28 + 76.2, 0)}, tol='10%')
+      fields={'ref_at': (79.5, 401.32, 90), 'val_at': (81.5, 401.32, 90),
+              'tol_at': (83.5, 401.32, 90)}, tol='10%')
 wire((40.64, 321.31 + 76.2), (45.72, 321.31 + 76.2), (55.88, 321.31 + 76.2), (66.04, 321.31 + 76.2), (76.2, 321.31 + 76.2))
 wire((43.18, 328.93 + 76.2), (45.72, 328.93 + 76.2), (55.88, 328.93 + 76.2), (66.04, 328.93 + 76.2), (76.2, 328.93 + 76.2))
 for x in (45.72, 55.88, 66.04):
     junc((x, 321.31 + 76.2)); junc((x, 328.93 + 76.2))
 gnd(40.64, 321.31 + 76.2)
-pe(43.18, 328.93 + 76.2)
+pe(43.18, 328.93 + 76.2, rot=180)
 text("Ground breaker (jedyny styk masy z chassis): 10R przerywa petle masy;", 27.94, 340.36 + 76.2, 1.27)
 text("przy usterce diody zwieraja GND do PE i bezpiecznik zadziala.", 27.94, 342.9 + 76.2, 1.27)
 
@@ -619,11 +632,11 @@ for s in SYMS:
         # val_at jawnie) - jak w riaa/gen.py: zalezne od typu/orientacji.
         horiz = rot in (90, 270)
         if libid == 'Device:D':
-            drpos, dvpos = (x + 2.54, y - 1.27, 0), (x + 2.54, y + 1.27, 0)
+            drpos, dvpos, dtpos = (x + 2.54, y - 1.27, 0), (x + 2.54, y + 1.27, 0), (x + 2.54, y + 3.81, 0)
         elif horiz:
-            drpos, dvpos = (x - 3.81, y - 5.08, 0), (x - 3.81, y - 2.54, 0)
+            drpos, dvpos, dtpos = (x - 3.81, y - 5.08, 0), (x - 3.81, y - 2.54, 0), (x - 3.81, y, 0)
         else:
-            drpos, dvpos = (x + 2.54, y - 1.27, 0), (x + 2.54, y + 1.27, 0)
+            drpos, dvpos, dtpos = (x + 2.54, y - 1.27, 0), (x + 2.54, y + 1.27, 0), (x + 2.54, y + 3.81, 0)
         rpos = s['fields'].get('ref_at', drpos)
         vpos = s['fields'].get('val_at', dvpos)
         out.append('    (property "Reference" "%s" (at %s %s %d) (effects (font (size 1.27 1.27))))'
@@ -633,7 +646,7 @@ for s in SYMS:
     out.append('    (property "Footprint" "" (at %s %s 0) (effects (font (size 1.27 1.27)) hide))' % (fmt(x), fmt(y)))
     out.append('    (property "Datasheet" "" (at %s %s 0) (effects (font (size 1.27 1.27)) hide))' % (fmt(x), fmt(y)))
     if s['tol']:
-        tx, ty, trot = s['fields'].get('tol_at', (vpos[0] + 2.032, vpos[1], vpos[2]))
+        tx, ty, trot = s['fields'].get('tol_at', dtpos)
         out.append('    (property "Tolerance" "%s" (at %s %s %d) (effects (font (size 1.27 1.27))))'
                     % (s['tol'], fmt(tx), fmt(ty), trot))
     for num, px, py, a, l, nm in geo[u]:

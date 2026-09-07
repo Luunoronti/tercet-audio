@@ -183,8 +183,12 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - ~~Kanał P~~ ZROBIONE (Etap 5a).
 - ~~Zasilacz (B+, żarzenie, K1, ground breaker)~~ ZROBIONE (Etap 5b).
 - Crossfeed S1 (DPDT) + gniazda WE/WY na schemacie (Etap kolejny).
-- Estetyka schematu - Reference/Value/Tolerance nie na korpusach/drutach,
-  czytelność zasilacza (Etap 6).
+- ~~Estetyka schematu (Etap 6)~~ ZROBIONE (przegląd render -> poprawki
+  pól ref/value/tolerance w gen.py: domyślne offsety 3-liniowe, F1/SW1,
+  J1/PWR_FLAG/Earth_Protective, R301/NE1, R303/L1, ground breaker).
+  OTWARTE: rząd grzania (HEAT_A/HEAT_B trzech lamp, wiersz F) jest
+  ciasny - etykiety nachodzą się przy niskiej rozdzielczości; czytelne
+  po przybliżeniu, do ew. dalszej poprawy.
 - BOM (TME) + specyfikacja OPT dla nawijacza (5k:80, ≥45mA, Lp≥25H).
 - Zakup DT 770 M; sprawdzić sterowniki 0202 pod Windows.
 - Decyzja obudowy (seria TERCET).
