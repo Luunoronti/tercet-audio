@@ -1,0 +1,90 @@
+* SE EL84 (trioda) + 1/2 ECC82 - wzmacniacz sluchawkowy, jeden kanal
+* Modele Korena; OPT 5k:80 jako sprzezone indukcyjnosci
+
+*--- Koren triode: 12AU7 / ECC82 ---
+.subckt 12AU7 A G K
+  Bp  A K I = pwr(v(e1),1.3)/1180
+  Be1 e1 0 V = (v(A,K)/84)*ln(1+exp(84*(1/21.5 + v(G,K)/sqrt(300 + v(A,K)*v(A,K)))))
+  Rg  G K 2000Meg
+  Cgk G K 1.6p
+  Cga G A 1.5p
+  Cak A K 0.5p
+.ends
+
+*--- Koren pentode: EL84 ---
+.subckt EL84 A G2 G1 K
+  Bp  A K I = pwr(v(e1),1.24)/401.7 * (0.636*atan(v(A,K)/17.9))
+  Be1 e1 0 V = (v(G2,K)/111.04)*ln(1+exp(111.04*(1/19.5 + v(G1,K)/v(G2,K))))
+  Bg2 G2 K I = (exp(1.24*ln(max(v(G2,K)/19.5 + v(G1,K),0.01))))/4500
+  Rg  G1 K 2000Meg
+  Cg1k G1 K 10.8p
+  Cg1a G1 A 0.5p
+  Cak  A K 5.2p
+  Cg1g2 G1 G2 0.5p
+.ends
+
+*--- zrodlo i potencjometr na maksie ---
+Vin in 0 DC 0 AC 1 SIN(0 {VAMP} 1k)
+Rpot in ing 500
+Rpot2 ing 0 50k
+C1 ing g1a 220n
+R1 g1a 0 470k
+R2 g1a g1 1k
+
+*--- driver: 1/2 ECC82 ---
+XV1 a1 g1 k1 12AU7
+R3 k1 0 1.5k
+C2 k1 0 100u
+R4 bdrv a1 47k
+
+*--- odsprzeganie zasilania drivera ---
+R5 bplus bdrv 10k
+C4 bdrv 0 47u
+
+*--- sprzezenie ---
+C3 a1 g2a 100n
+R6 g2a 0 470k
+R7 g2a g2 1k
+
+*--- koncowka: EL84 w triodzie (g2 -> anoda przez 100R) ---
+XV2 a2 sg g2 k2 EL84
+Rstrap a2 sg 100
+R8 k2 0 270
+C5 k2 0 470u
+
+*--- OPT 5k:80 : Lp=15H, k=0.9997 (ok. 9mH rozproszenia), DCR 250R/0.6R, Cw 400p
+Rpdc a2 pri 250
+Lp  pri bplus 15
+Cw  a2 bplus 400p
+Ls  sec2 0 0.24
+K1  Lp Ls 0.9997
+Rsdc sec2 sec 0.6
+Rload sec 0 80
+
+*--- zasilanie ---
+Vbp bplus 0 DC 300
+
+.param VAMP=0.1
+
+.control
+  op
+  echo === PUNKT PRACY ===
+  print v(a1) v(k1) v(a2) v(k2) v(bdrv)
+  let ia2 = -i(vbp)
+  print ia2
+
+  * pasmo przenoszenia
+  ac dec 40 5 200k
+  let gain = db(v(sec)/v(ing))
+  wrdata fr.txt gain
+
+  * THD przy trzech poziomach wyjscia
+  foreach amp 0.05 0.15 0.45
+    alterparam VAMP = $amp
+    reset
+    tran 2u 60m 20m
+    linearize v(sec)
+    fourier 1k v(sec)
+  end
+.endc
+.end

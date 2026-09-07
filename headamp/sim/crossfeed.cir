@@ -1,0 +1,28 @@
+* Pasywny crossfeed (S1) - wartosci finalne po strojeniu w ngspice
+* Sygnal testowy tylko w kanale L; obciazenie = potencjometr 50k wzmacniacza
+VL lin 0 DC 0 AC 1
+VR rin 0 DC 0 AC 0
+RsrcL lin l1 100
+RsrcR rin r1 100
+* tor bezposredni (R || C)
+R21 l1 lout 1k
+C21 l1 lout 470n
+R22 r1 rout 1k
+C22 r1 rout 470n
+* galaz krzyzowa L -> R
+R23 l1 ml 2.2k
+C23 ml 0 220n
+R25 ml rout 3.3k
+* galaz krzyzowa R -> L
+R24 r1 mr 2.2k
+C24 mr 0 220n
+R26 mr lout 3.3k
+RpotL lout 0 50k
+RpotR rout 0 50k
+.control
+ac dec 40 20 20k
+let direct = db(v(lout))
+let cross  = db(v(rout))
+wrdata xf.txt direct cross
+.endc
+.end

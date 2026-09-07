@@ -13,6 +13,10 @@ w spójnej serii (drewno + lustrzana stal nierdzewna + żarzenie lamp):
 3. **`preamp/`** — przedwzmacniacz liniowy: selektor wejść, głośność,
    balans, mono, filtry, barwa. *Stan: planowanie.*
 
+Poza serią: **`headamp/`** — lampowy wzmacniacz słuchawkowy SE EL84
+pod DT 770 M (stan: schemat poglądowy + symulacje; patrz
+`docs/PROJEKT-HEADAMP.md`).
+
 Pozostałe katalogi: **`common/`** — bloki współdzielone między urządzeniami
 (żarzenie DC z LD1085, automatyka rozładowania/mute), **`enclosure/`** —
 pliki obudów (DXF płyt pod cięcie laserowe, grawer frontów),
