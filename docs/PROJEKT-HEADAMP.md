@@ -82,3 +82,14 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 4. BOM z symbolami TME; przenieść blok żarzenia z `common/` 1:1.
 5. Rozładowanie B+ (220k/2W przez C11) — przejąć automatykę K1 z common.
 6. Decyzja obudowy: wpisać w serię TERCET (drewno + stal + widoczne lampy).
+
+## Stan realizacji (2026-09-07)
+- Schemat KiCad `headamp/headamp.kicad_sch`: kanał L kompletny, zbudowany
+  przez Konnect; ERC 0 błędów (ostrzeżenia oczekiwane: unit B ECC82 wolny,
+  IN_L/OUT_L wiszące do czasu gniazd/crossfeedu).
+- UWAGA numeracja na schemacie różni się od sekcji "Wartości" wyżej:
+  C2=1µ (katoda, stały), C3=100µ (za SW2), C5=100n (sprzęgający),
+  C6=470µ (katoda EL84), R9=100R (zwora triodowa). Schemat = źródło prawdy.
+- Crossfeed S1: zaprojektowany i zasymulowany (sim/crossfeed.cir),
+  do narysowania w KiCadzie.
+- Kolejne kroki i stan narzędzi (Konnect/KiCad): patrz CLAUDE.md w korzeniu.
