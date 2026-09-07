@@ -74,13 +74,14 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
   darmowa dla hobbysty; PCM install + wpis w konfigu Claude Desktop).
 - Symulacje: ngspice (netlisty w `headamp/sim/`).
 
-## TODO
+## TODO (patrz tez aktualna lista na koncu dokumentu, po Etapie 5b)
 1. Zakup DT 770 M; sprawdzić sterowniki 0202 pod Windows na maszynie roboczej.
 2. Specyfikacja OPT dla nawijacza (5k:80, ≥45 mA, Lp ≥25 H, opc. odczepy
    32/300 Ω) + wycena (Ogonowski / Trafco itp.).
-3. `headamp/gen.py` + `check.py` (asercje netlisty jak w RIAA).
+3. ~~`headamp/gen.py` + `check.py` (asercje netlisty jak w RIAA).~~ ZROBIONE.
 4. BOM z symbolami TME; przenieść blok żarzenia z `common/` 1:1.
-5. Rozładowanie B+ (220k/2W przez C11) — przejąć automatykę K1 z common.
+5. ~~Rozładowanie B+ (220k/2W przez C11) — przejąć automatykę K1 z common.~~
+   ZROBIONE (Etap 5b: R303 bleeder + K1/R306).
 6. Decyzja obudowy: wpisać w serię TERCET (drewno + stal + widoczne lampy).
 
 ## Decyzje - Etap 5a (kanal P, 2026-09-07)
@@ -150,17 +151,40 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Ground breaker: 1:1 z common/riaa (10R/5W + 2x1N5408 antyrownolegle
   + 100n/630V), jedyny styk masy sygnalowej (GND) z PE/chassis.
 
-## Stan realizacji (2026-09-07)
-- Schemat KiCad `headamp/headamp.kicad_sch`: kanał L kompletny, zbudowany
-  przez Konnect; ERC 0 błędów (ostrzeżenia oczekiwane: unit B ECC82 wolny,
-  IN_L/OUT_L wiszące do czasu gniazd/crossfeedu).
+## Stan realizacji (2026-09-07, po Etapie 5b)
+- Schemat generowany skryptem **`headamp/gen.py`** (+ `symlib.py` +
+  `check.py`, wzor riaa/) - **zrodlo prawdy = gen.py, NIE edytowac
+  `headamp.kicad_sch` recznie**. UUID deterministyczne (uuid5) -
+  regeneracja jest idempotentna (git diff pusty przy dwoch uruchomieniach).
+- Kanal L + kanal P + zasilacz **kompletne, ERC 0 bledow**. Ostrzezenia
+  oczekiwane (5): wiszace IN_L/IN_R/OUT_L/OUT_R (do czasu gniazd/
+  crossfeedu) + multiple_net_names ELEV/HEAT_B (zamierzone, jak w
+  common/riaa).
 - UWAGA numeracja na schemacie różni się od sekcji "Wartości" wyżej:
   C2=1µ (katoda, stały), C3=100µ (za SW2), C5=100n (sprzęgający),
-  C6=470µ (katoda EL84), R9=100R (zwora triodowa). Schemat = źródło prawdy.
+  C6=470µ (katoda EL84), R9=100R (zwora triodowa) - kanał L; kanał P =
+  te same refy +200. Schemat (gen.py) = źródło prawdy.
 - Tolerancje (pole `Tolerance`, widoczne pod Value; DECYZJA): rezystory 5%
   (R3 1k5 katoda drivera — 1%, punkt pracy), folie C1/C5 5%, elektrolity
-  20%, RV1 20%. Lampy/OPT/przełączniki bez tolerancji. Konnect nie ustawia
-  widoczności/pozycji pól — zrobione skryptem (do przeniesienia do gen.py).
+  20%, RV1 20%. Lampy/OPT/przełączniki bez tolerancji. Zaimplementowane
+  w gen.py (parametr `tol=` w `place()`).
+- Kanał P (Etap 5a): unit B ECC82 (driver), drugi EL84 (U202), drugi OPT
+  (T201), RV1 = potencjometr podwójny. Layout = geometria kanału L
+  przesunięta w Y (dy=105,41mm, siatka 1,27mm).
+- Zasilacz (Etap 5b): B+ wspólny 300V (CLC), elewacja 220k/47k, K1
+  rozładowanie, żarzenie LD1085, ground breaker - patrz sekcja DECYZJE
+  wyżej.
 - Crossfeed S1: zaprojektowany i zasymulowany (sim/crossfeed.cir),
-  do narysowania w KiCadzie.
+  JESZCZE do narysowania w gen.py (Etap kolejny).
 - Kolejne kroki i stan narzędzi (Konnect/KiCad): patrz CLAUDE.md w korzeniu.
+
+## TODO (aktualizacja po Etapie 5b - skreslone zrobione)
+- ~~gen.py + check.py (kanał L port 1:1)~~ ZROBIONE (Etap 0-1).
+- ~~Kanał P~~ ZROBIONE (Etap 5a).
+- ~~Zasilacz (B+, żarzenie, K1, ground breaker)~~ ZROBIONE (Etap 5b).
+- Crossfeed S1 (DPDT) + gniazda WE/WY na schemacie (Etap kolejny).
+- Estetyka schematu - Reference/Value/Tolerance nie na korpusach/drutach,
+  czytelność zasilacza (Etap 6).
+- BOM (TME) + specyfikacja OPT dla nawijacza (5k:80, ≥45mA, Lp≥25H).
+- Zakup DT 770 M; sprawdzić sterowniki 0202 pod Windows.
+- Decyzja obudowy (seria TERCET).

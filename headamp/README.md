@@ -23,10 +23,29 @@ Lp OPT=15 H — zamówić ≥25 H); Zout ~36 Ω; THD @0,6 Vrms: 0,20%
 Szczegóły i log decyzji: `docs/PROJEKT-HEADAMP.md`.
 
 ## Pliki
+- `gen.py` — generator schematu KiCad (`headamp.kicad_sch`); **źródło
+  prawdy jest w tym pliku, NIE edytować schematu ręcznie w Eeschema**
+  (regeneracja go nadpisze). UUID deterministyczne (uuid5) — dwa
+  uruchomienia dają identyczny plik.
+- `symlib.py` — parser symboli KiCad (kopia `riaa/symlib.py`, inna
+  ścieżka domyślna biblioteki: Windows).
+- `check.py` — asercje netlisty (wzór `riaa/check.py`): kanał L, kanał
+  P (funkcja `chan()` parametryzowana referencjami), zasilacz.
 - `sim/amp.cir` — pełny tor (driver + końcówka + OPT), .op / .ac / THD
 - `sim/crossfeed.cir` — sieć crossfeedu S1
-- `ref/se_el84.svg`, `ref/crossfeed.svg` — schematy poglądowe (schemdraw);
-  docelowo generator `gen.py` jak w `riaa/` — TODO
+- `ref/se_el84.svg`, `ref/crossfeed.svg` — schematy poglądowe (schemdraw,
+  historyczne, przed generatorem)
+
+## Workflow (regeneracja schematu)
+```
+python headamp/gen.py
+kicad-cli sch export netlist --format kicadsexpr -o headamp/headamp.net headamp/headamp.kicad_sch
+python headamp/check.py
+kicad-cli sch erc --format json --severity-all -o erc.json headamp/headamp.kicad_sch
+```
+Oczekiwane po Etapie 5b: check.py OK, ERC 0 błędów, ostrzeżenia: wiszące
+IN_L/IN_R/OUT_L/OUT_R (do czasu gniazd/crossfeedu) + multiple_net_names
+ELEV/HEAT_B (zamierzone, jak w common/riaa).
 
 ## Uruchomienie symulacji
 ```
