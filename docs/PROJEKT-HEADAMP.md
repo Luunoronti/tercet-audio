@@ -90,6 +90,10 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - UWAGA numeracja na schemacie różni się od sekcji "Wartości" wyżej:
   C2=1µ (katoda, stały), C3=100µ (za SW2), C5=100n (sprzęgający),
   C6=470µ (katoda EL84), R9=100R (zwora triodowa). Schemat = źródło prawdy.
+- Tolerancje (pole `Tolerance`, widoczne pod Value; DECYZJA): rezystory 5%
+  (R3 1k5 katoda drivera — 1%, punkt pracy), folie C1/C5 5%, elektrolity
+  20%, RV1 20%. Lampy/OPT/przełączniki bez tolerancji. Konnect nie ustawia
+  widoczności/pozycji pól — zrobione skryptem (do przeniesienia do gen.py).
 - Crossfeed S1: zaprojektowany i zasymulowany (sim/crossfeed.cir),
   do narysowania w KiCadzie.
 - Kolejne kroki i stan narzędzi (Konnect/KiCad): patrz CLAUDE.md w korzeniu.
