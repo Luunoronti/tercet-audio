@@ -3,6 +3,22 @@
 Dokument ustaleń, analogicznie do PROJEKT-RIAA.md. Przy pracy z AI podawać
 ten plik na starcie sesji.
 
+## Słuchawki — rekomendacja (żeby nie zapomnieć)
+Kryterium nadrzędne: **jak najsilniejsze pasywne tłumienie hałasu** (praca
+w głośnym otoczeniu; test odniesienia: syrena centralki alarmowej ma być
+znośna). Bez ANC.
+
+1. **Beyerdynamic DT 770 M** — WYBÓR GŁÓWNY (pod niego projektowany
+   wzmacniacz). Uwaga: koniecznie wersja **"M"** (monitoring, dla perkusistów),
+   nie zwykłe DT 770 Pro! ~35 dBA tłumienia (najwięcej wśród nausznych),
+   80 Ω, mocny docisk (cena izolacji). OPT 5k:80 dobrany pod tę impedancję.
+2. **Sennheiser HD 280 Pro** — plan B / budżetowo: do 32 dB, 64 Ω,
+   ~85% izolacji DT 770 M za mniej niż połowę ceny; brzmienie poprawne, suche.
+3. **Etymotic ER2SE / ER4SR (douszne + pianki)** — najlepsza izolacja
+   w ogóle (35–42 dB) i wzorcowa neutralność, jeśli douszne wchodzą w grę;
+   niska impedancja/wysoka czułość — uwaga na szum i dobór odczepu OPT.
+Odrzucone: Direct Sound EX-29, Vic Firth SIH2 (izolacja OK, dźwięk słaby).
+
 ## Kontekst i wymagania
 - Słuchawki: **Beyerdynamic DT 770 M** (80 Ω) — wybrane za najsilniejsze
   pasywne tłumienie hałasu wśród nausznych (~35 dBA); jeszcze nie kupione.
