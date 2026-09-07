@@ -16,8 +16,14 @@ sys.path.insert(0, os.path.dirname(__file__))
 import symlib
 
 
-def U():
-    return str(uuidlib.uuid4())
+# Etap 0: deterministyczne UUID (uuid5) zamiast uuid4 losowego, zeby
+# regeneracja byla idempotentna (git diff pusty przy dwoch uruchomieniach).
+# Klucz jednoznacznie opisuje element (patrz wywolania U(...) nizej).
+NAMESPACE = uuidlib.uuid5(uuidlib.NAMESPACE_URL, 'tercet-headamp')
+
+
+def U(key):
+    return str(uuidlib.uuid5(NAMESPACE, key))
 
 
 ROOT = "fd162765-1b28-469c-8099-083c76e823f0"   # ten sam uuid arkusza co w b7d6cc9
@@ -75,7 +81,8 @@ def rp(p):
 
 def place(ref, libid, value, x, y, rot=0, unit=1, mirror=None, fields=None, tol=None):
     SYMS.append(dict(ref=ref, libid=libid, value=value, x=round(x, 2), y=round(y, 2),
-                      rot=rot, unit=unit, mirror=mirror, fields=fields or {}, tol=tol, uuid=U()))
+                      rot=rot, unit=unit, mirror=mirror, fields=fields or {}, tol=tol,
+                      uuid=U('sym:%s:u%d' % (ref, unit))))
 
 
 def pin(ref, number, unit=None):
@@ -305,22 +312,28 @@ out.append('''  (title_block
   )''')
 
 for p in dedup_juncs(JUNCS):
-    out.append('  (junction (at %s %s) (diameter 0) (uuid %s))' % (fmt(p[0]), fmt(p[1]), U()))
+    out.append('  (junction (at %s %s) (diameter 0) (uuid %s))'
+               % (fmt(p[0]), fmt(p[1]), U('junc:%s,%s' % (fmt(p[0]), fmt(p[1])))))
 for (a, b) in WIRES:
     out.append('  (wire (pts (xy %s %s) (xy %s %s)) (stroke (width 0) (type default)) (uuid %s))'
-                % (fmt(a[0]), fmt(a[1]), fmt(b[0]), fmt(b[1]), U()))
+                % (fmt(a[0]), fmt(a[1]), fmt(b[0]), fmt(b[1]),
+                   U('wire:%s,%s-%s,%s' % (fmt(a[0]), fmt(a[1]), fmt(b[0]), fmt(b[1])))))
 for p in NOCONN:
-    out.append('  (no_connect (at %s %s) (uuid %s))' % (fmt(p[0]), fmt(p[1]), U()))
+    out.append('  (no_connect (at %s %s) (uuid %s))'
+               % (fmt(p[0]), fmt(p[1]), U('noconn:%s,%s' % (fmt(p[0]), fmt(p[1])))))
 for (name, p, rot, just) in LABELS:
     out.append('  (label "%s" (at %s %s %d) (effects (font (size 1.27 1.27)) (justify %s)) (uuid %s))'
-                % (name, fmt(p[0]), fmt(p[1]), rot, just, U()))
+                % (name, fmt(p[0]), fmt(p[1]), rot, just,
+                   U('label:%s:%s,%s' % (name, fmt(p[0]), fmt(p[1])))))
 for (name, p, rot, just) in GLABELS:
     out.append('  (global_label "%s" (shape input) (at %s %s %d) '
                 '(effects (font (size 1.27 1.27)) (justify %s)) (uuid %s))'
-                % (name, fmt(p[0]), fmt(p[1]), rot, just, U()))
+                % (name, fmt(p[0]), fmt(p[1]), rot, just,
+                   U('glabel:%s:%s,%s' % (name, fmt(p[0]), fmt(p[1])))))
 for (s, x, y, size, rot) in TEXTS:
     out.append('  (text "%s" (at %s %s %d) (effects (font (size %s %s)) (justify left bottom)) (uuid %s))'
-                % (s, fmt(x), fmt(y), rot, fmt(size), fmt(size), U()))
+                % (s, fmt(x), fmt(y), rot, fmt(size), fmt(size),
+                   U('text:%s,%s:%s' % (fmt(x), fmt(y), s[:30]))))
 
 for s in SYMS:
     libid = s['libid']; x, y, rot = s['x'], s['y'], s['rot']
@@ -350,7 +363,8 @@ for s in SYMS:
         out.append('    (property "Tolerance" "%s" (at %s %s %d) (effects (font (size 1.27 1.27))))'
                     % (s['tol'], fmt(tx), fmt(ty), trot))
     for num, px, py, a, l, nm in geo[u]:
-        out.append('    (pin "%s" (uuid %s))' % (num, U()))
+        out.append('    (pin "%s" (uuid %s))'
+                   % (num, U('pin:%s:u%d:%s' % (s['ref'], s['unit'], num))))
     out.append('    (instances (project "%s" (path "/%s" (reference "%s") (unit %d))))'
                 % (PROJECT, ROOT, s['ref'], s['unit']))
     out.append('  )')
