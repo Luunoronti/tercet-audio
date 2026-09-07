@@ -43,7 +43,7 @@ def embed(lib, name, newname=None, value=None, datasheet=None, desc=None):
 
 LIBPARTS = [
     ('Device', 'R'), ('Device', 'C'), ('Device', 'C_Polarized'),
-    ('Device', 'R_Potentiometer'), ('Device', 'Transformer_1P_1S'),
+    ('Device', 'R_Potentiometer_Dual_Separate'), ('Device', 'Transformer_1P_1S'),
     ('Switch', 'SW_SPST'),
     ('Valve', 'ECC81'), ('Valve', 'EL84'),
     ('power', 'GND'), ('power', 'PWR_FLAG'),
@@ -143,139 +143,165 @@ def pwrflag(x, y, rot=0):
 
 
 # =======================================================================
-#  KANAL L (audio) - odtworzony 1:1 z headamp.kicad_sch @ b7d6cc9
-#  (kompletny commit z ERC=0). Wspolrzedne/pola/tolerancje wyciete z
-#  tamtego pliku (git show b7d6cc9:headamp/headamp.kicad_sch).
+#  KANAL AUDIO (L, P) - funkcja parametryzowana dy (przesuniecie Y) i
+#  numeracja referencji. Kanal L = odtworzony 1:1 z headamp.kicad_sch @
+#  b7d6cc9 (kompletny commit z ERC=0); kanal P = ta sama geometria kanalu
+#  L przesunieta w Y (dy), z refami +200 (Etap 5a, DECYZJA patrz
+#  docs/PROJEKT-HEADAMP.md), na wspolnym RV1 (potencjometr podwojny,
+#  R_Potentiometer_Dual_Separate) - unit=1 (piny 1/2/3) dla L, unit=2
+#  (piny 4/5/6, ta sama geometria wzgledna) dla P.
 # =======================================================================
 
-place('RV1', 'Device:R_Potentiometer', '50k log', 39.37, 139.7,
-      fields={'ref_at': (34.925, 139.7, 90), 'val_at': (36.83, 139.7, 90),
-              'tol_at': (32.893, 139.7, 90)}, tol='20%')
-place('C1', 'Device:C', '220n', 58.42, 129.54, rot=90,
-      fields={'ref_at': (55.88, 128.905, 0), 'val_at': (60.96, 128.905, 0),
-              'tol_at': (62.992, 128.905, 0)}, tol='5%')
-place('R1', 'Device:R', '470k', 68.58, 144.78,
-      fields={'ref_at': (70.612, 144.78, 90), 'val_at': (68.58, 144.78, 90),
-              'tol_at': (66.548, 144.78, 90)}, tol='5%')
-place('R2', 'Device:R', '1k', 80.01, 129.54, rot=90,
-      fields={'ref_at': (80.01, 127.508, 90), 'val_at': (80.01, 129.54, 90),
-              'tol_at': (80.01, 131.572, 90)}, tol='5%')
-place('U1', 'Valve:ECC81', 'ECC82', 100.33, 129.54, unit=1,
-      fields={'ref_at': (103.632, 121.666, 0), 'val_at': (109.22, 137.16, 0)})
-place('R3', 'Device:R', '1k5', 93.98, 154.94,
-      fields={'ref_at': (96.012, 154.94, 90), 'val_at': (93.98, 154.94, 90),
-              'tol_at': (91.948, 154.94, 90)}, tol='1%')
-place('SW2', 'Switch:SW_SPST', 'S2 wokal', 118.11, 149.86, rot=270,
-      fields={'ref_at': (121.285, 149.86, 0), 'val_at': (115.57, 149.86, 0)})
-place('C2', 'Device:C_Polarized', '1u/25V', 105.41, 154.94,
-      fields={'ref_at': (106.045, 152.4, 0), 'val_at': (106.045, 157.48, 0),
-              'tol_at': (106.045, 159.512, 0)}, tol='20%')
-place('C3', 'Device:C_Polarized', '100u/25V', 118.11, 166.37,
-      fields={'ref_at': (118.745, 163.83, 0), 'val_at': (118.745, 168.91, 0),
-              'tol_at': (118.745, 170.942, 0)}, tol='20%')
-place('R4', 'Device:R', '47k/2W', 100.33, 105.41,
-      fields={'ref_at': (102.362, 105.41, 90), 'val_at': (100.33, 105.41, 90),
-              'tol_at': (98.298, 105.41, 90)}, tol='5%')
-place('C4', 'Device:C_Polarized', '47u/350V', 86.36, 105.41,
-      fields={'ref_at': (86.995, 102.87, 0), 'val_at': (86.995, 107.95, 0),
-              'tol_at': (86.995, 109.982, 0)}, tol='20%')
-place('R5', 'Device:R', '10k/2W', 111.76, 91.44, rot=90,
-      fields={'ref_at': (111.76, 89.408, 90), 'val_at': (111.76, 91.44, 90),
-              'tol_at': (111.76, 93.472, 90)}, tol='5%')
-place('C5', 'Device:C', '100n/400V', 125.73, 118.11, rot=90,
-      fields={'ref_at': (123.19, 117.475, 0), 'val_at': (128.27, 117.475, 0),
-              'tol_at': (130.302, 117.475, 0)}, tol='5%')
-place('R6', 'Device:R', '470k', 135.89, 132.08,
-      fields={'ref_at': (137.922, 132.08, 90), 'val_at': (135.89, 132.08, 90),
-              'tol_at': (133.858, 132.08, 90)}, tol='5%')
-place('R7', 'Device:R', '1k', 148.59, 118.11, rot=90,
-      fields={'ref_at': (148.59, 116.078, 90), 'val_at': (148.59, 118.11, 90),
-              'tol_at': (148.59, 120.142, 90)}, tol='5%')
-place('U2', 'Valve:EL84', 'EL84 (trioda)', 171.45, 124.46, unit=1,
-      fields={'ref_at': (173.99, 114.3, 0), 'val_at': (179.07, 132.08, 0)})
-place('R9', 'Device:R', '100', 185.42, 115.57,
-      fields={'ref_at': (187.452, 115.57, 90), 'val_at': (185.42, 115.57, 90),
-              'tol_at': (183.388, 115.57, 90)}, tol='5%')
-place('R8', 'Device:R', '270/5W', 166.37, 149.86,
-      fields={'ref_at': (168.402, 149.86, 90), 'val_at': (166.37, 149.86, 90),
-              'tol_at': (164.338, 149.86, 90)}, tol='5%')
-place('C6', 'Device:C_Polarized', '470u/25V', 180.34, 149.86,
-      fields={'ref_at': (180.975, 147.32, 0), 'val_at': (180.975, 152.4, 0),
-              'tol_at': (180.975, 154.432, 0)}, tol='20%')
-place('T1', 'Device:Transformer_1P_1S', 'OPT SE 5k:80R (>=25H, 45mA)', 209.55, 107.95,
-      fields={'ref_at': (209.55, 101.6, 0), 'val_at': (209.55, 115.57, 0)})
+def chan(dy, lbl, potunit, u1unit, elref, tref, swref, off, out_flag=False):
+    def rn(base):
+        pfx = base[0]
+        return pfx + str(int(base[1:]) + off)
 
-# --- grzanie (heater) U1/U2 - jednostki 3 (ECC82) / 2 (EL84), odrebnie
-#     narysowane pod schematem audio, dokladnie jak w b7d6cc9 ---
+    def y(v):
+        return v + dy
+
+    place('RV1', 'Device:R_Potentiometer_Dual_Separate', '50k log (podwojny)', 39.37, y(139.7),
+          unit=potunit,
+          fields={'ref_at': (34.925, y(139.7), 90), 'val_at': (36.83, y(139.7), 90),
+                  'tol_at': (32.893, y(139.7), 90)}, tol='20%')
+    place(rn('C1'), 'Device:C', '220n', 58.42, y(129.54), rot=90,
+          fields={'ref_at': (55.88, y(128.905), 0), 'val_at': (60.96, y(128.905), 0),
+                  'tol_at': (62.992, y(128.905), 0)}, tol='5%')
+    place(rn('R1'), 'Device:R', '470k', 68.58, y(144.78),
+          fields={'ref_at': (70.612, y(144.78), 90), 'val_at': (68.58, y(144.78), 90),
+                  'tol_at': (66.548, y(144.78), 90)}, tol='5%')
+    place(rn('R2'), 'Device:R', '1k', 80.01, y(129.54), rot=90,
+          fields={'ref_at': (80.01, y(127.508), 90), 'val_at': (80.01, y(129.54), 90),
+                  'tol_at': (80.01, y(131.572), 90)}, tol='5%')
+    place('U1', 'Valve:ECC81', 'ECC82', 100.33, y(129.54), unit=u1unit,
+          fields={'ref_at': (103.632, y(121.666), 0), 'val_at': (109.22, y(137.16), 0)})
+    place(rn('R3'), 'Device:R', '1k5', 93.98, y(154.94),
+          fields={'ref_at': (96.012, y(154.94), 90), 'val_at': (93.98, y(154.94), 90),
+                  'tol_at': (91.948, y(154.94), 90)}, tol='1%')
+    place(swref, 'Switch:SW_SPST', 'S2 wokal' if lbl == 'L' else 'S2 wokal (P)', 118.11, y(149.86), rot=270,
+          fields={'ref_at': (121.285, y(149.86), 0), 'val_at': (115.57, y(149.86), 0)})
+    place(rn('C2'), 'Device:C_Polarized', '1u/25V', 105.41, y(154.94),
+          fields={'ref_at': (106.045, y(152.4), 0), 'val_at': (106.045, y(157.48), 0),
+                  'tol_at': (106.045, y(159.512), 0)}, tol='20%')
+    place(rn('C3'), 'Device:C_Polarized', '100u/25V', 118.11, y(166.37),
+          fields={'ref_at': (118.745, y(163.83), 0), 'val_at': (118.745, y(168.91), 0),
+                  'tol_at': (118.745, y(170.942), 0)}, tol='20%')
+    place(rn('R4'), 'Device:R', '47k/2W', 100.33, y(105.41),
+          fields={'ref_at': (102.362, y(105.41), 90), 'val_at': (100.33, y(105.41), 90),
+                  'tol_at': (98.298, y(105.41), 90)}, tol='5%')
+    place(rn('C4'), 'Device:C_Polarized', '47u/350V', 86.36, y(105.41),
+          fields={'ref_at': (86.995, y(102.87), 0), 'val_at': (86.995, y(107.95), 0),
+                  'tol_at': (86.995, y(109.982), 0)}, tol='20%')
+    place(rn('R5'), 'Device:R', '10k/2W', 111.76, y(91.44), rot=90,
+          fields={'ref_at': (111.76, y(89.408), 90), 'val_at': (111.76, y(91.44), 90),
+                  'tol_at': (111.76, y(93.472), 90)}, tol='5%')
+    place(rn('C5'), 'Device:C', '100n/400V', 125.73, y(118.11), rot=90,
+          fields={'ref_at': (123.19, y(117.475), 0), 'val_at': (128.27, y(117.475), 0),
+                  'tol_at': (130.302, y(117.475), 0)}, tol='5%')
+    place(rn('R6'), 'Device:R', '470k', 135.89, y(132.08),
+          fields={'ref_at': (137.922, y(132.08), 90), 'val_at': (135.89, y(132.08), 90),
+                  'tol_at': (133.858, y(132.08), 90)}, tol='5%')
+    place(rn('R7'), 'Device:R', '1k', 148.59, y(118.11), rot=90,
+          fields={'ref_at': (148.59, y(116.078), 90), 'val_at': (148.59, y(118.11), 90),
+                  'tol_at': (148.59, y(120.142), 90)}, tol='5%')
+    place(elref, 'Valve:EL84', 'EL84 (trioda)', 171.45, y(124.46), unit=1,
+          fields={'ref_at': (173.99, y(114.3), 0), 'val_at': (179.07, y(132.08), 0)})
+    place(rn('R9'), 'Device:R', '100', 185.42, y(115.57),
+          fields={'ref_at': (187.452, y(115.57), 90), 'val_at': (185.42, y(115.57), 90),
+                  'tol_at': (183.388, y(115.57), 90)}, tol='5%')
+    place(rn('R8'), 'Device:R', '270/5W', 166.37, y(149.86),
+          fields={'ref_at': (168.402, y(149.86), 90), 'val_at': (166.37, y(149.86), 90),
+                  'tol_at': (164.338, y(149.86), 90)}, tol='5%')
+    place(rn('C6'), 'Device:C_Polarized', '470u/25V', 180.34, y(149.86),
+          fields={'ref_at': (180.975, y(147.32), 0), 'val_at': (180.975, y(152.4), 0),
+                  'tol_at': (180.975, y(154.432), 0)}, tol='20%')
+    place(tref, 'Device:Transformer_1P_1S', 'OPT SE 5k:80R (>=25H, 45mA)', 209.55, y(107.95),
+          fields={'ref_at': (209.55, y(101.6), 0), 'val_at': (209.55, y(115.57), 0)})
+
+    # --- druty kanalu (topologia = literalna kopia wire/junction z b7d6cc9,
+    #     przesunieta o dy w Y) ---
+    wire((43.18, y(139.7)), (54.61, y(139.7)))
+    wire((54.61, y(139.7)), (54.61, y(129.54)))
+    wire((62.23, y(129.54)), (76.2, y(129.54)))
+    wire((68.58, y(140.97)), (68.58, y(129.54)))
+    wire((83.82, y(129.54)), (92.71, y(129.54)))
+    wire((97.79, y(139.7)), (97.79, y(143.51)))
+    wire((93.98, y(143.51)), (118.11, y(143.51)))
+    wire((93.98, y(143.51)), (93.98, y(151.13)))
+    wire((105.41, y(143.51)), (105.41, y(151.13)))
+    wire((118.11, y(143.51)), (118.11, y(144.78)))
+    wire((118.11, y(154.94)), (118.11, y(162.56)))
+    wire((100.33, y(119.38)), (100.33, y(109.22)))
+    wire((100.33, y(118.11)), (121.92, y(118.11)))
+    wire((86.36, y(101.6)), (100.33, y(101.6)))
+    wire((100.33, y(101.6)), (100.33, y(91.44)))
+    wire((100.33, y(91.44)), (107.95, y(91.44)))
+    wire((129.54, y(118.11)), (144.78, y(118.11)))
+    wire((135.89, y(118.11)), (135.89, y(128.27)))
+    wire((152.4, y(118.11)), (157.48, y(118.11)))
+    wire((157.48, y(118.11)), (157.48, y(125.73)))
+    wire((157.48, y(125.73)), (163.83, y(125.73)))
+    wire((168.91, y(133.35)), (168.91, y(146.05)))
+    wire((166.37, y(146.05)), (180.34, y(146.05)))
+    wire((171.45, y(113.03)), (199.39, y(113.03)))
+    wire((185.42, y(111.76)), (185.42, y(113.03)))
+    wire((185.42, y(119.38)), (185.42, y(123.19)))
+    wire((185.42, y(123.19)), (179.07, y(123.19)))
+    wire((219.71, y(113.03)), (224.79, y(113.03)))
+    wire((224.79, y(113.03)), (224.79, y(116.84)))
+    wire((115.57, y(91.44)), (118.11, y(91.44)))
+    wire((199.39, y(102.87)), (196.85, y(102.87)))
+    wire((39.37, y(135.89)), (39.37, y(133.35)))
+    wire((219.71, y(102.87)), (222.25, y(102.87)))
+
+    for p in [(68.58, y(129.54)), (97.79, y(143.51)), (100.33, y(101.6)), (100.33, y(118.11)),
+              (105.41, y(143.51)), (135.89, y(118.11)), (168.91, y(146.05)), (185.42, y(113.03))]:
+        junc(p)
+
+    # masa (GND) - 10x, dokladnie te same punkty co #PWR001..#PWR010 w b7d6cc9
+    for gx, gy in [(39.37, 143.51), (68.58, 148.59), (93.98, 158.75), (105.41, 158.75),
+                   (118.11, 170.18), (86.36, 109.22), (135.89, 135.89), (166.37, 153.67),
+                   (180.34, 153.67), (224.79, 116.84)]:
+        gnd(gx, y(gy))
+
+    glabel('+300V', (118.11, y(91.44)), rot=0, just='left')
+    glabel('+300V', (196.85, y(102.87)), rot=180, just='right')
+    glabel('IN_' + lbl, (39.37, y(133.35)), rot=0, just='left')
+    glabel('OUT_' + lbl, (222.25, y(102.87)), rot=0, just='left')
+
+    if out_flag:
+        # PWR_FLAG na powrocie wtornym OPT do GND (jak w b7d6cc9) - tylko
+        # RAZ na cala plansze (kolejne flagi na tym samym wezle GND daja
+        # ERC error "Power output and Power output are connected").
+        pwrflag(224.79, y(113.03))
+
+
+# dy = 105.41 (83 * 1.27mm siatki) - kanal P dokladnie pod kanalem L,
+# wspolrzedne pozostaja na siatce schematu (grid 1.27mm), inaczej ERC
+# zglasza "endpoint_off_grid" na kazdym przesunietym drucie/pinie.
+chan(dy=0, lbl='L', potunit=1, u1unit=1, elref='U2', tref='T1', swref='SW2', off=0, out_flag=True)
+chan(dy=105.41, lbl='R', potunit=2, u1unit=2, elref='U202', tref='T201', swref='SW202', off=200)
+
+# --- grzanie (heater) - jednostki wspolne: ECC82 (U1, unit 3, jeden dla
+#     obu polowek/kanalow), EL84 audio L (U2, unit 2), EL84 audio P
+#     (U202, unit 2). Odrebnie narysowane pod schematem obu kanalow. ---
 place('U1', 'Valve:ECC81', 'ECC82', 59.69, 224.79, unit=3,
       fields={'ref_at': (62.992, 216.916, 0), 'val_at': (68.58, 232.41, 0)})
 place('U2', 'Valve:EL84', 'EL84 (trioda)', 90.17, 224.79, unit=2,
       fields={'ref_at': (92.71, 214.63, 0), 'val_at': (97.79, 232.41, 0)})
+place('U202', 'Valve:EL84', 'EL84 (trioda)', 120.65, 224.79, unit=2,
+      fields={'ref_at': (123.19, 214.63, 0), 'val_at': (128.27, 232.41, 0)})
 
-# --- druty kanalu L (topologia = literalna kopia wire/junction z b7d6cc9) ---
-wire((43.18, 139.7), (54.61, 139.7))
-wire((54.61, 139.7), (54.61, 129.54))
-wire((62.23, 129.54), (76.2, 129.54))
-wire((68.58, 140.97), (68.58, 129.54))
-wire((83.82, 129.54), (92.71, 129.54))
-wire((97.79, 139.7), (97.79, 143.51))
-wire((93.98, 143.51), (118.11, 143.51))
-wire((93.98, 143.51), (93.98, 151.13))
-wire((105.41, 143.51), (105.41, 151.13))
-wire((118.11, 143.51), (118.11, 144.78))
-wire((118.11, 154.94), (118.11, 162.56))
-wire((100.33, 119.38), (100.33, 109.22))
-wire((100.33, 118.11), (121.92, 118.11))
-wire((86.36, 101.6), (100.33, 101.6))
-wire((100.33, 101.6), (100.33, 91.44))
-wire((100.33, 91.44), (107.95, 91.44))
-wire((129.54, 118.11), (144.78, 118.11))
-wire((135.89, 118.11), (135.89, 128.27))
-wire((152.4, 118.11), (157.48, 118.11))
-wire((157.48, 118.11), (157.48, 125.73))
-wire((157.48, 125.73), (163.83, 125.73))
-wire((168.91, 133.35), (168.91, 146.05))
-wire((166.37, 146.05), (180.34, 146.05))
-wire((171.45, 113.03), (199.39, 113.03))
-wire((185.42, 111.76), (185.42, 113.03))
-wire((185.42, 119.38), (185.42, 123.19))
-wire((185.42, 123.19), (179.07, 123.19))
-wire((219.71, 113.03), (224.79, 113.03))
-wire((224.79, 113.03), (224.79, 116.84))
-wire((115.57, 91.44), (118.11, 91.44))
-wire((199.39, 102.87), (196.85, 102.87))
-wire((39.37, 135.89), (39.37, 133.35))
-wire((219.71, 102.87), (222.25, 102.87))
-
-for p in [(68.58, 129.54), (97.79, 143.51), (100.33, 101.6), (100.33, 118.11),
-          (105.41, 143.51), (135.89, 118.11), (168.91, 146.05), (185.42, 113.03)]:
-    junc(p)
-
-# masa (GND) - 10x, dokladnie te same punkty co #PWR001..#PWR010 w b7d6cc9
-gnd(39.37, 143.51)
-gnd(68.58, 148.59)
-gnd(93.98, 158.75)
-gnd(105.41, 158.75)
-gnd(118.11, 170.18)
-gnd(86.36, 109.22)
-gnd(135.89, 135.89)
-gnd(166.37, 153.67)
-gnd(180.34, 153.67)
-gnd(224.79, 116.84)
-
-# etykiety grzania + globalne + PWR_FLAG (dokladnie jak #PWR011..#PWR013)
+# etykiety grzania + globalne + PWR_FLAG (dokladnie jak #PWR011..#PWR013,
+# rozszerzone o U202)
 label('HEAT_A', (57.15, 236.22))
 label('HEAT_A', (62.23, 236.22))
 label('HEAT_A', (87.63, 234.95))
+label('HEAT_A', (118.11, 234.95))
 label('HEAT_B', (59.69, 236.22))
 label('HEAT_B', (92.71, 234.95))
+label('HEAT_B', (123.19, 234.95))
 
-glabel('+300V', (118.11, 91.44), rot=0, just='left')
-glabel('+300V', (196.85, 102.87), rot=180, just='right')
-glabel('IN_L', (39.37, 133.35), rot=0, just='left')
-glabel('OUT_L', (222.25, 102.87), rot=0, just='left')
-
-pwrflag(224.79, 113.03)
 pwrflag(87.63, 234.95, rot=180)
 pwrflag(92.71, 234.95, rot=180)
 

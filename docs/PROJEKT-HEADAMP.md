@@ -83,6 +83,29 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 5. Rozładowanie B+ (220k/2W przez C11) — przejąć automatykę K1 z common.
 6. Decyzja obudowy: wpisać w serię TERCET (drewno + stal + widoczne lampy).
 
+## Decyzje - Etap 5a (kanal P, 2026-09-07)
+- RV1 = **potencjometr podwojny** (jedna fizyczna os), symbol
+  `Device:R_Potentiometer_Dual_Separate` (biblioteka systemowa KiCad 10):
+  unit 1 (piny 1/2/3) = kanal L, unit 2 (piny 4/5/6, identyczna geometria
+  wzgledna) = kanal P. Brak wczesniejszej decyzji w tym dokumencie -
+  wybrano zamiast dwoch osobnych RV1A/RV1B, bo w bibliotece jest gotowy
+  symbol dual, a w praktyce kupujemy jeden fizyczny podwojny potencjometr
+  (Alps/inny), nie dwa osobne.
+- Kanal P: refy +200 wzgledem kanalu L (R201-R209, C201-C206, SW202,
+  T201, U202=drugi EL84); U1 (ECC82) unit B (piny 1=A,2=G,3=K) dla
+  drivera kanalu P - ta sama fizyczna lampa co kanal L. Etykiety
+  IN_R/OUT_R (nie IN_P/OUT_P - zgodnie z konwencja L/R jak w RIAA).
+- Layout: kanal P = identyczna geometria kanalu L, przesunieta o
+  dy=105,41 mm w Y (wielokrotnosc siatki 1,27 mm - inna wartosc daje
+  ERC "endpoint_off_grid" na kazdym przesunietym drucie/pinie).
+- Grzanie: wspolna szyna HEAT_A/HEAT_B dla wszystkich 3 lamp (ECC82
+  U1 unit F, EL84 U2 i U202, kazdy wlasny unit grzania) - jak w RIAA.
+- PWR_FLAG na powrocie wtornym OPT do GND: tylko JEDEN na cala plansze
+  (przy T1/kanal L) - drugi (na T201/kanal P) daje ERC error "Power
+  output and Power output are connected" (oba na tym samym wezle GND).
+- Paper: na razie zostaje **A3** (kanal P miesci sie, max Y ~275 mm);
+  decyzja o A2 odlozona do Etapu 5b (zasilacz), patrz TODO.
+
 ## Stan realizacji (2026-09-07)
 - Schemat KiCad `headamp/headamp.kicad_sch`: kanał L kompletny, zbudowany
   przez Konnect; ERC 0 błędów (ostrzeżenia oczekiwane: unit B ECC82 wolny,
