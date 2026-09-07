@@ -15,3 +15,5 @@ __pycache__/
 riaa/riaa.net
 riaa/svg_out/
 *.png
+headamp/svg_out/
+headamp/*.pdf
