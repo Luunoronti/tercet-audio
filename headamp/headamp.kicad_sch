@@ -1,0 +1,12 @@
+(kicad_sch
+  (version 20231120)
+  (generator "eeschema")
+  (uuid "fd162765-1b28-469c-8099-083c76e823f0")
+  (paper "A3")
+  (title_block
+    (title "TERCET headamp — SE EL84 (trioda) + 1/2 ECC82, OPT 5k:80")
+    (company "TERCET")
+    (comment 1 "Wzmacniacz sluchawkowy pod DT 770 M (80R); zero polprzewodnikow w torze")
+    (comment 2 "Zrodlo prawdy docelowo: gen.py (TODO) — patrz docs/PROJEKT-HEADAMP.md")
+  )
+)
