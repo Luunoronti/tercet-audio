@@ -39,8 +39,15 @@ Szczegóły i log decyzji: `docs/PROJEKT-HEADAMP.md`.
   P (funkcja `chan()` parametryzowana referencjami), zasilacz, crossfeed
   S1, gniazda WE/WY.
 - `sim/amp.cir` — pełny tor (driver + końcówka + OPT), .op / .ac / THD
-- `sim/crossfeed.cir` — sieć crossfeedu S1 (**źródło prawdy** dla
-  topologii narysowanej w `gen.py` - SW401 + R401-R406 + C401-C404)
+- `sim/crossfeed.cir` — sieć crossfeedu S1, wariant "ON" (bez przełącznika,
+  same wartości R/C) - historyczny, poprzednik `crossfeed_sw.cir`.
+- `sim/crossfeed_sw.cir` — **źródło prawdy** dla topologii narysowanej w
+  `gen.py` (SW401 na WYJŚCIU galęzi krzyżowej, DECYZJA 2026-09-08 - patrz
+  docs/PROJEKT-HEADAMP.md). Trzy warianty w jednym pliku (ngspice batch,
+  kolejne `.end`): 1) ON (krzyżowy załączony), 2) OFF nowa topologia
+  (S1 na wyjściu - odłącza całą galąź krzyżową od wyjść), 3) OFF stara
+  topologia (S1 na wejściu, ODRZUCONA - R405/R406+C403/C404 nadal
+  obciążają wyjścia, ugięcie basu ~1,4 dB - uzasadnienie zmiany).
 - `ref/se_el84.svg`, `ref/crossfeed.svg` — schematy poglądowe (schemdraw,
   historyczne, przed generatorem)
 
@@ -58,5 +65,5 @@ log decyzji: docs/PROJEKT-HEADAMP.md.
 ```
 cd headamp/sim
 ngspice -b amp.cir
-ngspice -b crossfeed.cir
+ngspice -b crossfeed_sw.cir
 ```

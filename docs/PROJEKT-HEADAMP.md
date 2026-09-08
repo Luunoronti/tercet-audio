@@ -54,11 +54,14 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
   Wartości po strojeniu w ngspice: tor prosty R 1k ∥ C 470n; krzyżowy
   R 2k2 → C 220n do masy → R 3k3 do przeciwnego kanału. Efekt: przesłuch
   −14 dB w basie, wygasa >~700 Hz; strata wtrąceniowa ~1–3 dB (skok
-  głośności przy przełączaniu — normalny). **Implementacja na schemacie
-  (Etap 6, SW401):** tor prosty (R401∥C401/R402∥C402) jest ZAWSZE
-  wpięty (bypass przełącznika); SW401 przełącza tylko dopływ sygnału do
-  gałęzi krzyżowej (patrz "Decyzje - Etap 6" niżej) - `sim/crossfeed.cir`
-  jest źródłem prawdy dla dokładnej topologii.
+  głośności przy przełączaniu — normalny). Tor prosty (R401∥C401/
+  R402∥C402) jest ZAWSZE wpięty (bypass przełącznika) - to się nie
+  zmieniło. **Implementacja na schemacie - przełącznik po stronie
+  WYJŚCIOWEJ galęzi krzyżowej (DECYZJA 2026-09-08, patrz "Decyzje -
+  crossfeed S1 na wyjściu" niżej dla pełnego uzasadnienia i liczb z
+  symulacji)** - `sim/crossfeed_sw.cir` jest źródłem prawdy dla dokładnej
+  topologii (trzy warianty: ON, OFF nowa topologia, OFF stara topologia -
+  porównanie).
 - **S2 "wokal do przodu" (DPST, po sekcji na kanał)**: katoda drivera ma
   C2a 1µ na stałe + C2b 100µ dołączane przełącznikiem. S2 otwarty →
   półka −3 dB poniżej ~200 Hz (lokalna degeneracja katodowa), wokal
@@ -243,7 +246,11 @@ formalnie 3 błędy, nie tylko same ostrzeżenia. Zaakceptowane jako
 - alternatywa (przywrócenie unitów z realnym okablowaniem) cofnęłaby tę
 decyzję i wymaga wyraźnego wyboru użytkownika (patrz TODO wyżej).
 
-**C. Crossfeed S1 - przełączany DPDT.** Element `SW401`
+**C. Crossfeed S1 - przełączany DPDT.** ***UWAGA: topologia opisana w tym
+punkcie (przełącznik po stronie WEJŚCIOWEJ galęzi krzyżowej) została
+ZASTĄPIONA decyzją z 2026-09-08 - patrz sekcja "Decyzje - crossfeed S1 na
+wyjściu (2026-09-08)" na końcu dokumentu. Punkt C zostaje jako zapis
+historyczny (uzasadnienie zmiany, liczby z porównania).*** Element `SW401`
 (`Switch:SW_DPDT_x2`), Value "S1 crossfeed", numeracja 4xx (moduł
 wejściowy: J401/J402, SW401, R401-R406, C401-C404). **Topologia i
 wartości - ŹRÓDŁO PRAWDY: `headamp/sim/crossfeed.cir`** (nie opis niżej
@@ -347,3 +354,84 @@ Zweryfikowane: regeneracja idempotentna (dwa uruchomienia `gen.py` dają
 identyczny plik), ERC = 0/0, cała treść arkusza mieści się wygodnie w
 obrębie ramki A2 (marginesy zachowane, nic nie dotyka ramki arkusza ani
 tabliczki tytułowej - sprawdzone na renderze PDF w powiększeniu).
+
+## Decyzje - crossfeed S1 na wyjściu (2026-09-08)
+
+**Powód zmiany.** W topologii z Etapu 6 (SW401 na WEJŚCIU galęzi
+krzyżowej - patrz punkt C wyżej) rezystory R405/R406 (3k3) i kondensatory
+C403/C404 (220n) galęzi krzyżowej ZOSTAWAŁY na wyjściach nawet przy S1
+w pozycji "prosty" (OFF): przełącznik odcinał tylko dopływ z wejścia do
+R403/R404, ale R405+C403 (R406+C404) nadal wisiały jako obciążenie RC na
+wyjściach toru prostego. Zmierzone symulacją (patrz niżej): ugięcie
+pasma ~1,4 dB w rejonie 100-200 Hz - słyszalne, niepożądane przy "S1
+OFF" (tor prosty powinien być dokładnie płaski). DECYZJA: przenieść S1
+na stronę WYJŚCIOWĄ galęzi krzyżowej (za R405/R406, tuż przed wspólnym
+węzłem z torem prostym) - przy S1 OFF cała galąź krzyżowa (R403..R406,
+C403/C404) jest odcięta od wyjść, więc nie ma żadnego wpływu na tor
+prosty.
+
+**Symulacja (ngspice NIEDOSTĘPNY w PATH - nie zainstalowany, zgodnie z
+poleceniem "jeśli nie - zgłoś, nie instaluj" NIE zainstalowano go; wyniki
+niżej policzone analitycznie - nodal/MNA solver dla dokładnie tej samej
+topologii RLC co w `sim/crossfeed_sw.cir`, skrypt jednorazowy, nie
+commitowany). Plik `headamp/sim/crossfeed_sw.cir` zawiera 3 warianty
+gotowe do uruchomienia w ngspice, gdy będzie dostępny (`ngspice -b
+headamp/sim/crossfeed_sw.cir`):**
+
+1. **ON (krzyżowy załączony)** - identyczny elektrycznie w obu
+   topologiach (pozycja przełącznika nie zmienia, gdzie w torze siedzi,
+   tylko czy jest zamknięty). Przesłuch (poziom na wyjściu
+   przeciwnego kanału, sygnał testowy tylko w L): **-15,8 dB @100 Hz,
+   -30,0 dB @1 kHz** (zanika >~700 Hz, zgodnie z wcześniejszym opisem
+   "-14 dB w basie" - różnica rzędu 1-2 dB wobec wcześniejszego zapisu to
+   normalna rozbieżność modelu, rząd wielkości ten sam).
+2. **OFF, nowa topologia (S1 na wyjściu galęzi krzyżowej)** - odchyłka
+   odpowiedzi kanału prostego (20 Hz-20 kHz) od płaskiej: **~0,17 dB**
+   (od -0,19 dB @20 Hz do -0,02 dB @20 kHz) - to wyłącznie efekt C401/
+   C402 (470n) w torze prostym (nie samego dzielnika R401/RpotL, który
+   sam w sobie byłby idealnie płaski); brak przesłuchu (kanały całkowicie
+   rozłączone, cross = -∞ dB w modelu).
+3. **OFF, stara topologia (S1 na wejściu galęzi krzyżowej, ODRZUCONA)** -
+   odpowiedź kanału prostego NIE jest płaska: dołek ok. **-1,58 dB w
+   okolicy 200 Hz** względem końców pasma (-0,23 dB @20 Hz, -0,28 dB
+   @20 kHz) - efekt obciążenia wyjścia przez R405 (3k3) szeregowo z C403
+   (220n) do masy, mimo otwartego S1. Rozstęp całkowity ~1,36 dB - to
+   właśnie "ugięcie basu" uzasadniające zmianę topologii.
+
+**Zmiany w `headamp/gen.py` (moduł WEJŚCIE).** SW401 przeniesiony z
+x=90,17 (przy wejściach) na x=149,86 (tuż przed magistralami wyjściowymi
+outL/outR, x=175,26/185,42), obie sekcje (unit1/unit2) w tym samym x,
+różne y (39,37 i 52,07) - "obok siebie". Element umieszczony z
+`mirror='y'`, żeby COM (wspólny) wypadł po PRAWEJ (do wyjścia), a styk
+(od strony R405/R406) po LEWEJ - odzwierciedla kierunek sygnału.
+Wejścia J401/J402 podłączone teraz WPROST do R403/R404 (galąź krzyżowa)
+i - osobnym odgałęzieniem nad/pod galęzią krzyżową (y=22,86 / y=64,77) -
+do R401/R402 (tor prosty); przełącznik nie leży już na tej ścieżce.
+R405/R406 łączą się ze stykiem SW401 (piny 1/4), NC (piny 3/6) pozostaje
+jak wcześniej ("pozycja prosty = galąź pływająca"), COM (piny 2/5)
+podłączony do magistrali wyjściowej przeciwnego kanału (sekcja A -> outR/
+RV1.4, sekcja B -> outL/RV1.1). Layout "X" bez przecięcia drutów: galąź
+L->P kończy na dalszej (prawej) magistrali outR, galąź P->L na bliższej
+(lewej) magistrali outL - dwie przeciwbieżne ścieżki między rzędami L
+(u góry) i P (u dole), bez wspólnego junction w żadnym miejscu
+przecięcia. Podpis na schemacie: "S1 crossfeed: ON = przesluch -14 dB w
+basie (<700 Hz), OFF = tor prosty".
+
+**Zmiany w `headamp/check.py`.** Sekcja "CROSSFEED S1" przepisana pod
+nową topologię: `same(J401.1, R401.1, R403.1, C401.1)` (gniazdo L, bez
+przełącznika po tej stronie), `same(R401.2, C401.2, RV1.1, SW401.5)`
+(wyjście toru prostego L + COM sekcji B), analogicznie dla P; `same(R405.2,
+SW401.1)` / `same(R406.2, SW401.4)` (R405/R406 -> styk); dodane
+`diff(SW401.1, SW401.2)` / `diff(SW401.4, SW401.5)` (styk != COM - test
+że nie ma przypadkowego zwarcia stykiem-COM na schemacie).
+
+**Weryfikacja.** `check.py`: wszystkie asercje OK (58 sieci). ERC
+(`kicad-cli sch erc --format json --severity-all`): **0 błędów, 0
+ostrzeżeń** (bez zmian względem stanu sprzed tej zmiany). Idempotencja:
+dwa kolejne uruchomienia `gen.py` dają identyczny plik (md5 zgodne).
+Render modułu WEJŚCIE (`render_schematic_png`/PDF): J401/J402 z lewej,
+tor prosty R401∥C401 (góra)/R402∥C402 (dół) zawsze wpięty; galęzie
+krzyżowe (R403/C403/R405 i R404/C404/R406) zbiegają się do SW401A/SW401B
+(dwie sekcje jedna nad drugą, tuż przed magistralami wyjściowymi), NC na
+pinach 3/6, podpis S1 nad całym modułem - czytelne, bez nakładających się
+pól opisowych.

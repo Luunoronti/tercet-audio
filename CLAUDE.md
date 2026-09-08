@@ -48,9 +48,11 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   THD 0,2% @0,6Vrms (dominacja H2), Zout ~36 Ω, dół -3 dB @24 Hz przy
   Lp=15 H → OPT zamawiać z Lp ≥ 25 H.
 - Crossfeed S1 (pasywny, DPDT, SW401) zaprojektowany, zasymulowany
-  (`headamp/sim/crossfeed.cir` - źródło prawdy topologii) i narysowany
-  w KiCadzie (Etap 6/B). Tor prosty zawsze wpięty, przełącznik steruje
-  tylko gałęzią krzyżową - patrz docs/PROJEKT-HEADAMP.md.
+  (`headamp/sim/crossfeed_sw.cir` - źródło prawdy topologii) i narysowany
+  w KiCadzie. Tor prosty zawsze wpięty; SW401 jest po stronie WYJŚCIOWEJ
+  galęzi krzyżowej (DECYZJA 2026-09-08 - przy S1 OFF cała galąź jest
+  odcięta od wyjść, tor prosty zostaje idealnie płaski) - patrz
+  docs/PROJEKT-HEADAMP.md.
 - Pełna pamięć projektu: `docs/PROJEKT-HEADAMP.md` (wymagania, decyzje,
   wartości, wyniki symulacji, TODO).
 
