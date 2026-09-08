@@ -121,18 +121,16 @@ chan(rn_id(0), 'L', ('1', '2', '3'), ('6', '7', '8'), 'U2', 'T1', 'SW2', 0)
 chan(rn_id(200), 'P', ('4', '5', '6'), ('1', '2', '3'), 'U202', 'T201', 'SW202', 200)
 
 # =======================================================================
-#  zarzenia (grzanie) - wspolne dla obu kanalow, dwie wspolne szyny
-#  ECC82 (U1, unit F): pin4 + pin5 -> HEAT_A, pin9 -> HEAT_B
-#  EL84 U2/U202 (unit heater): pin4 -> HEAT_A, pin5 -> HEAT_B
+#  zarzenia (grzanie) - DECYZJA 2026-09-08: zarniki lamp NIE SA RYSOWANE
+#  (unity grzania ECC82/EL84 usuniete ze schematu razem z drutami do nich).
+#  Netlista wiec juz NIE ZAWIERA U1.4/U1.5/U1.9/U2.4/U2.5/U202.4/U202.5 -
+#  asercje po stronie lamp usuniete stad; zostaja tylko po stronie
+#  zasilacza (sekcja "ZASILACZ" nizej, HEAT_A/HEAT_B na U301/R307/R308).
 # =======================================================================
-same(('U1', '4'), ('U1', '5'), ('U2', '4'), ('U202', '4'))     # HEAT_A (wspolna dla 3 lamp)
-same(('U1', '9'), ('U2', '5'), ('U202', '5'))                  # HEAT_B (wspolna dla 3 lamp)
 
 # =======================================================================
 #  diff() - sieci ktore MUSZA byc rozne (dodatkowe, poza chan())
 # =======================================================================
-diff(('U1', '4'), ('U1', '9'))            # HEAT_A != HEAT_B
-diff(('R5', '2'), ('U1', '4'))            # B+ != zarzenie
 diff(('RV1', '1'), ('RV1', '4'))          # IN_L != IN_R
 diff(('T1', '4'), ('T201', '4'))          # OUT_L != OUT_R
 diff(('U1', '6'), ('U1', '1'))            # anoda kanalu L != anoda kanalu P (na tej samej lampie)
@@ -148,9 +146,13 @@ same(('R5', '2'), ('R205', '2'), ('T1', '1'), ('T201', '1'), ('L1', '2'),
 # ELEV (elewacja zarzenia +50V wzgledem HEAT_A/HEAT_B)
 same(('R304', '2'), ('R305', '1'), ('C304', '1'), ('K1', 'A2'), ('D305', '2'))
 
-# HEAT_A / HEAT_B - wspolny sterownik LD1085 (U301), 3 lampy
-same(('U301', '2'), ('U1', '4'), ('U1', '5'), ('U2', '4'), ('U202', '4'))     # HEAT_A
-same(('U1', '9'), ('U2', '5'), ('U202', '5'), ('R308', '2'), ('C307', '2'))   # HEAT_B
+# HEAT_A / HEAT_B - wyjscie LD1085 (U301), strona zasilacza (DECYZJA
+# 2026-09-08: zarniki lamp nie sa rysowane - dawne asercje az do U1/U2/U202
+# usuniete, zostaje tylko to co faktycznie jest na schemacie: U301 (wyjscie
+# regulatora) i R307/R308/C307/C308 (dzielnik + odsprzeganie), az do
+# etykiet HEAT_A/HEAT_B na koncach drutow).
+same(('U301', '2'), ('R307', '1'), ('C308', '1'))                            # HEAT_A
+same(('R308', '2'), ('C307', '2'), ('C308', '2'))                            # HEAT_B
 
 # V_RAW - wyjscie mostka Schottky zarzenia, zasila K1 i U301.VI
 same(('D306', '1'), ('D307', '1'), ('C305', '1'), ('C306', '1'), ('U301', '3'),
@@ -188,7 +190,7 @@ same(('R309', '1'), ('D310', '1'), ('D311', '2'), ('C309', '1'), ('R1', '2'))
 diff(('R5', '2'), ('R1', '2'))            # +300V != GND
 diff(('R304', '2'), ('R1', '2'))          # ELEV != GND
 diff(('D306', '1'), ('R304', '2'))        # V_RAW != ELEV
-diff(('U301', '2'), ('U1', '9'))          # HEAT_A != HEAT_B
+diff(('U301', '2'), ('R308', '2'))        # HEAT_A != HEAT_B
 diff(('R5', '2'), ('R304', '2'))          # +300V != ELEV
 diff(('J1', '1'), ('J1', '2'))            # L != N
 diff(('J1', '2'), ('J1', '3'))            # N != PE

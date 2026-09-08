@@ -140,6 +140,16 @@ def noconn(p):
     NOCONN.append(rp(p))
 
 
+FRAMES = []
+
+
+def frame(x0, y0, x1, y1, title):
+    """Ramka modulu (grafika arkusza, (rectangle ...)) + tytul w lewym
+    gornym rogu (tekst 2,5mm) - DECYZJA 2026-09-08 "layout w ramkach"."""
+    FRAMES.append((round(x0, 2), round(y0, 2), round(x1, 2), round(y1, 2)))
+    text(title, x0 + 1.27, y0 + 3.0, 2.5)
+
+
 def gnd(x, y):
     place('#GND%d' % len(SYMS), 'power:GND', 'GND', x, y)
 
@@ -161,6 +171,16 @@ def pe(x, y, rot=0):
 #  R_Potentiometer_Dual_Separate) - unit=1 (piny 1/2/3) dla L, unit=2
 #  (piny 4/5/6, ta sama geometria wzgledna) dla P.
 # =======================================================================
+
+# BUS_X - wspolna magistrala pionowa B+ (+300V), hybryda "druty zamiast
+# etykiet" (DECYZJA 2026-09-08): zbiera odgalezienia z obu kanalow (korytarz
+# nad kazdym modulem, y=80/y=185.41) i z zasilacza (CLC/R304/K1, patrz sekcja
+# ponizej), zamiast global_label('+300V',...) uzywanego w commicie fc227e8.
+# Wspolrzedna wybrana tak, by nie kolidowac z zadnym komponentem kanalu
+# (max X kanalu ~227) ani z K1 w zasilaczu (K1 lezy PONIZEJ punktu koncowego
+# magistrali - patrz "+300V bus" nizej).
+BUS_X = 245.11
+
 
 def chan(dy, lbl, potunit, u1unit, elref, tref, swref, off, out_flag=False):
     def rn(base):
@@ -274,8 +294,14 @@ def chan(dy, lbl, potunit, u1unit, elref, tref, swref, off, out_flag=False):
                    (180.34, 153.67), (224.79, 116.84)]:
         gnd(gx, y(gy))
 
-    glabel('+300V', (118.11, y(91.44)), rot=0, just='left')
-    glabel('+300V', (196.85, y(102.87)), rot=180, just='right')
+    # B+ (+300V) - hybryda "druty zamiast etykiet" (DECYZJA 2026-09-08):
+    # oba punkty +300V kanalu wyprowadzone drutem w gore, do korytarza nad
+    # modulem (wolny od komponentow), a stamtad w prawo do wspolnej
+    # magistrali pionowej BUS_X (karmiona z zasilacza, patrz nizej "B+ bus").
+    wire((118.11, y(91.44)), (118.11, y(80.01)))
+    wire((196.85, y(102.87)), (196.85, y(80.01)))
+    wire((118.11, y(80.01)), (196.85, y(80.01)), (BUS_X, y(80.01)))
+    junc((196.85, y(80.01)))
     glabel('IN_' + lbl, (39.37, y(133.35)), rot=0, just='left')
     glabel('OUT_' + lbl, (222.25, y(102.87)), rot=0, just='left')
 
@@ -292,31 +318,12 @@ def chan(dy, lbl, potunit, u1unit, elref, tref, swref, off, out_flag=False):
 chan(dy=0, lbl='L', potunit=1, u1unit=1, elref='U2', tref='T1', swref='SW2', off=0, out_flag=True)
 chan(dy=105.41, lbl='R', potunit=2, u1unit=2, elref='U202', tref='T201', swref='SW202', off=200)
 
-# --- grzanie (heater) - jednostki wspolne: ECC82 (U1, unit 3, jeden dla
-#     obu polowek/kanalow), EL84 audio L (U2, unit 2), EL84 audio P
-#     (U202, unit 2). Odrebnie narysowane POD obydwoma kanalami audio
-#     (przesuniete +64,77 mm wzgledem b7d6cc9, zeby nie kolidowac z
-#     kanalem P - patrz DECYZJA w docs/PROJEKT-HEADAMP.md). ---
-place('U1', 'Valve:ECC81', 'ECC82', 59.69, 289.56, unit=3,
-      fields={'ref_at': (62.992, 281.686, 0), 'val_at': (68.58, 297.18, 0)})
-place('U2', 'Valve:EL84', 'EL84 (trioda)', 90.17, 289.56, unit=2,
-      fields={'ref_at': (92.71, 279.4, 0), 'val_at': (97.79, 297.18, 0)})
-place('U202', 'Valve:EL84', 'EL84 (trioda)', 120.65, 289.56, unit=2,
-      fields={'ref_at': (123.19, 279.4, 0), 'val_at': (128.27, 297.18, 0)})
-
-# etykiety grzania + globalne + PWR_FLAG (dokladnie jak #PWR011..#PWR013,
-# rozszerzone o U202)
-label('HEAT_A', (57.15, 300.99))
-label('HEAT_A', (62.23, 300.99))
-label('HEAT_A', (87.63, 299.72))
-label('HEAT_A', (118.11, 299.72))
-label('HEAT_B', (59.69, 300.99))
-label('HEAT_B', (92.71, 299.72))
-label('HEAT_B', (123.19, 299.72))
-
-# HEAT_A ma teraz sterownik (U301.VO w zasilaczu, Etap 5b) - flaga tylko
-# na HEAT_B (bez naturalnego sterownika, to "powrot" zarzenia).
-pwrflag(92.71, 299.72, rot=180)
+# --- zarniki lamp NIE SA RYSOWANE (DECYZJA 2026-09-08) - unity grzania
+#     ECC82 (U1 unit3), EL84 audio L (U2 unit2), EL84 audio P (U202 unit2)
+#     usuniete razem z drutami/etykietami; ERC zglosi "missing_unit" dla
+#     tych 3 nieumieszczonych unitow - OCZEKIWANE (patrz CLAUDE.md). Blok
+#     zarzenia w zasilaczu (nizej) konczy sie etykietami HEAT_A/HEAT_B, z
+#     adnotacja opisujaca podlaczenie zarnikow (patrz tekst przy U301). ---
 
 # =======================================================================
 #  ZASILACZ (Etap 5b) - layout drutami jak riaa/gen.py (bez etykiet
@@ -327,40 +334,49 @@ pwrflag(92.71, 299.72, rot=180)
 #  kanal, mniejszy prad, nie potrzeba oddzielnych filtrow).
 # =======================================================================
 
+# PSU_DY - przesuniecie calego bloku zasilacza w Y (Etap 5b: +76,2mm, miejsce
+# na rzad zarnikow lamp). Rzad zarnikow usuniety w Etapie 6 (DECYZJA
+# 2026-09-08 "zarniki nie sa rysowane"), ale wiele wspolrzednych ponizej
+# (pola ref/value, teksty, kilka wire()) jest zapisanych jako juz-wyliczone
+# wartosci absolutne (nie "baza + PSU_DY") - zmiana tej stalej rozjechalaby
+# je wzgledem reszty bloku. Zostaje 76,2mm; pusta przestrzen po zarnikach
+# wypelniona modulami WEJSCIE/WYJSCIE i ramkami (patrz nizej).
+PSU_DY = 76.2
+
 # --- siec (mains) ---
-LR, NR = 292.1 + 76.2, 311.15 + 76.2          # L rail / N rail
-place('J1', 'Connector:Screw_Terminal_01x03', 'MAINS 230V', 35.56, 294.64 + 76.2, mirror='y',
-      fields={'ref_at': (30.48, 287.02 + 76.2, 0), 'val_at': (30.48, 289.56 + 76.2, 0)})
+LR, NR = 292.1 + PSU_DY, 311.15 + PSU_DY          # L rail / N rail
+place('J1', 'Connector:Screw_Terminal_01x03', 'MAINS 230V', 35.56, 294.64 + PSU_DY, mirror='y',
+      fields={'ref_at': (30.48, 287.02 + PSU_DY, 0), 'val_at': (30.48, 289.56 + PSU_DY, 0)})
 place('F1', 'Device:Fuse', 'T500mA', 49.53, LR, rot=90,
       fields={'ref_at': (49.53, 361.95, 90), 'val_at': (49.53, 358.14, 90)})
 place('SW1', 'Switch:SW_DPST_x2', 'ON/OFF', 58.42, LR, unit=1,
-      fields={'ref_at': (54.61, 287.02 + 76.2, 0), 'val_at': (54.61, 289.56 + 76.2, 0)})
+      fields={'ref_at': (54.61, 287.02 + PSU_DY, 0), 'val_at': (54.61, 289.56 + PSU_DY, 0)})
 place('SW1', 'Switch:SW_DPST_x2', 'ON/OFF', 58.42, NR, unit=2,
-      fields={'ref_at': (48.26, 313.69 + 76.2, 0), 'val_at': (48.26, 316.23 + 76.2, 0)})
+      fields={'ref_at': (48.26, 313.69 + PSU_DY, 0), 'val_at': (48.26, 316.23 + PSU_DY, 0)})
 place('RT1', 'Device:Thermistor_NTC', 'NTC 10R', 69.85, LR, rot=90,
-      fields={'ref_at': (64.77, 287.02 + 76.2, 0), 'val_at': (64.77, 289.56 + 76.2, 0)})
+      fields={'ref_at': (64.77, 287.02 + PSU_DY, 0), 'val_at': (64.77, 289.56 + PSU_DY, 0)})
 place('T301', 'Device:Transformer_1P_2S', 'EI84 100VA: 230V : 250V/0,15A + 7V/3A',
-      106.68, 297.18 + 76.2,
-      fields={'ref_at': (100.33, 276.86 + 76.2, 0), 'val_at': (93.98, 318.77 + 76.2, 0)})
+      106.68, 297.18 + PSU_DY,
+      fields={'ref_at': (100.33, 276.86 + PSU_DY, 0), 'val_at': (93.98, 318.77 + PSU_DY, 0)})
 wire(pin('J1', 1), pin('F1', 1))
 wire(pin('F1', 2), pin('SW1', 1, unit=1))
 wire(pin('SW1', 2, unit=1), pin('RT1', 1))
 wire(pin('RT1', 2), (77.47, LR), (82.55, LR), (88.9, LR), (92.71, LR), pin('T301', 1))
 junc((77.47, LR)); junc((82.55, LR)); junc((88.9, LR))
-wire(pin('J1', 2), (43.18, 294.64 + 76.2), (43.18, NR), (53.34, NR))
+wire(pin('J1', 2), (43.18, 294.64 + PSU_DY), (43.18, NR), (53.34, NR))
 wire(pin('SW1', 4, unit=2), (77.47, NR), (88.9, NR), (92.71, NR),
      (92.71, pin('T301', 2)[1]), pin('T301', 2))
 junc((77.47, NR)); junc((88.9, NR))
 # PE (flaga i symbol PE rozsuniete, zeby ich Value nie nachodzily na
 # numery pinow J1 ani na siebie nawzajem)
-wire(pin('J1', 3), (41.91, 297.18 + 76.2), (41.91, 299.72 + 76.2), (41.91, 308.61 + 76.2))
-pe(41.91, 308.61 + 76.2)
-wire((41.91, 299.72 + 76.2), (33.02, 299.72 + 76.2), (33.02, 302.26 + 76.2)); junc((41.91, 299.72 + 76.2))
-pwrflag(33.02, 302.26 + 76.2)
-text("PE -> wlasna sruba M4 na chassis", 22.86, 313.69 + 76.2, 1.27)
+wire(pin('J1', 3), (41.91, 297.18 + PSU_DY), (41.91, 299.72 + PSU_DY), (41.91, 308.61 + PSU_DY))
+pe(41.91, 308.61 + PSU_DY)
+wire((41.91, 299.72 + PSU_DY), (33.02, 299.72 + PSU_DY), (33.02, 302.26 + PSU_DY)); junc((41.91, 299.72 + PSU_DY))
+pwrflag(33.02, 302.26 + PSU_DY)
+text("PE -> wlasna sruba M4 na chassis", 22.86, 313.69 + PSU_DY, 1.27)
 # warystor + neonowka (kontrolka) przez uzwojenie pierwotne, za wylacznikiem
-place('RV301', 'Device:Varistor', 'S14K275', 77.47, 302.26 + 76.2,
-      fields={'ref_at': (71.12, 300.99 + 76.2, 0), 'val_at': (69.85, 303.53 + 76.2, 0), 'val_just': 'right'})
+place('RV301', 'Device:Varistor', 'S14K275', 77.47, 302.26 + PSU_DY,
+      fields={'ref_at': (71.12, 300.99 + PSU_DY, 0), 'val_at': (69.85, 303.53 + PSU_DY, 0), 'val_just': 'right'})
 wire((77.47, LR), (77.47, pin('RV301', 1)[1]))
 wire(pin('RV301', 2), (77.47, NR))
 place('R301', 'Device:R', '220k', 88.9, 372.11,
@@ -370,15 +386,15 @@ place('NE1', 'Device:Lamp_Neon', 'NE-2 (jewel)', 88.9, 381.0,
 wire((88.9, LR), pin('R301', 1))
 wire(pin('R301', 2), pin('NE1', 2))
 wire(pin('NE1', 1), (88.9, NR))
-text("230V/0,15A (HT)", 88.9, 285.75 + 76.2, 1.27)
-text("7V/3A (zarzenie)", 88.9, 309.88 + 76.2, 1.27)
+text("230V/0,15A (HT)", 88.9, 285.75 + PSU_DY, 1.27)
+text("7V/3A (zarzenie)", 88.9, 309.88 + PSU_DY, 1.27)
 
 # --- mostek HT (UF4007) + snubber RC + filtr CLC ---
-YP, YM = 276.86 + 76.2, 309.88 + 76.2
-place('D301', 'Device:D', 'UF4007', 127.0, 280.67 + 76.2, rot=270)
-place('D302', 'Device:D', 'UF4007', 142.24, 280.67 + 76.2, rot=270)
-place('D303', 'Device:D', 'UF4007', 127.0, 306.07 + 76.2, rot=270)
-place('D304', 'Device:D', 'UF4007', 142.24, 306.07 + 76.2, rot=270)
+YP, YM = 276.86 + PSU_DY, 309.88 + PSU_DY
+place('D301', 'Device:D', 'UF4007', 127.0, 280.67 + PSU_DY, rot=270)
+place('D302', 'Device:D', 'UF4007', 142.24, 280.67 + PSU_DY, rot=270)
+place('D303', 'Device:D', 'UF4007', 127.0, 306.07 + PSU_DY, rot=270)
+place('D304', 'Device:D', 'UF4007', 142.24, 306.07 + PSU_DY, rot=270)
 # AC1 (T301 sec HT, pin3=SA) - D301.A (K->A, top->bottom of D301) - D303.K
 wire(pin('D301', 2), pin('D303', 1))                       # pionowa noga AC1 (x=127)
 wire(pin('T301', 3), (127.0, 363.22))
@@ -387,34 +403,34 @@ junc((127.0, 363.22))
 wire(pin('D302', 2), pin('D304', 1))                       # pionowa noga AC2 (x=142.24)
 wire(pin('T301', 4), (142.24, 370.84))
 junc((142.24, 370.84))
-place('R302', 'Device:R', '470R', 130.81, 298.45 + 76.2, rot=90,
-      fields={'ref_at': (127.0, 300.99 + 76.2, 90), 'val_at': (127.0, 303.53 + 76.2, 90)})
-place('C301', 'Device:C', '10n/1kV', 138.43, 298.45 + 76.2, rot=90,
-      fields={'ref_at': (134.62, 293.37 + 76.2, 0), 'val_at': (134.62, 295.91 + 76.2, 0)})
+place('R302', 'Device:R', '470R', 130.81, 298.45 + PSU_DY, rot=90,
+      fields={'ref_at': (127.0, 300.99 + PSU_DY, 90), 'val_at': (127.0, 303.53 + PSU_DY, 90)})
+place('C301', 'Device:C', '10n/1kV', 138.43, 298.45 + PSU_DY, rot=90,
+      fields={'ref_at': (134.62, 293.37 + PSU_DY, 0), 'val_at': (134.62, 295.91 + PSU_DY, 0)})
 wire(pin('R302', 2), pin('C301', 1))
 junc(pin('R302', 1)); junc(pin('C301', 2))
 wire(pin('D301', 1), (142.24, YP), (151.13, YP)); junc((142.24, YP))
 wire(pin('D303', 2), (142.24, YM), (146.05, YM)); junc((142.24, YM))
-place('C302', 'Device:C_Polarized', '220u/400V', 151.13, 280.67 + 76.2,
-      fields={'ref_at': (153.67, 285.75 + 76.2, 0), 'val_at': (153.67, 288.29 + 76.2, 0),
-              'tol_at': (153.67, 290.83 + 76.2, 0)}, tol='20%')
+place('C302', 'Device:C_Polarized', '220u/400V', 151.13, 280.67 + PSU_DY,
+      fields={'ref_at': (153.67, 285.75 + PSU_DY, 0), 'val_at': (153.67, 288.29 + PSU_DY, 0),
+              'tol_at': (153.67, 290.83 + PSU_DY, 0)}, tol='20%')
 place('L1', 'Device:L_Iron', '5-10H 100mA', 163.83, YP, rot=90,
-      fields={'ref_at': (160.02, 271.78 + 76.2, 0), 'val_at': (166.37, 271.78 + 76.2, 0), 'val_just': 'left'})
-text("L1 = dlawik zasilacza (nie mylic z Lp OPT >=25H - patrz T1/T201)", 151.13, 259.08 + 76.2, 1.27)
-place('C303', 'Device:C_Polarized', '220u/400V', 176.53, 280.67 + 76.2,
-      fields={'ref_at': (178.94, 285.75 + 76.2, 0), 'val_at': (178.94, 288.29 + 76.2, 0),
-              'tol_at': (178.94, 290.83 + 76.2, 0)}, tol='20%')
+      fields={'ref_at': (160.02, 271.78 + PSU_DY, 0), 'val_at': (166.37, 271.78 + PSU_DY, 0), 'val_just': 'left'})
+text("L1 = dlawik zasilacza (nie mylic z Lp OPT >=25H - patrz T1/T201)", 151.13, 259.08 + PSU_DY, 1.27)
+place('C303', 'Device:C_Polarized', '220u/400V', 176.53, 280.67 + PSU_DY,
+      fields={'ref_at': (178.94, 285.75 + PSU_DY, 0), 'val_at': (178.94, 288.29 + PSU_DY, 0),
+              'tol_at': (178.94, 290.83 + PSU_DY, 0)}, tol='20%')
 wire((151.13, YP), pin('C302', 1)); junc((151.13, YP))
 wire((151.13, YP), pin('L1', 1))
 wire(pin('L1', 2), (176.53, YP)); junc((176.53, YP))
 wire((176.53, YP), pin('C303', 1))
-place('R303', 'Device:R', '220k/2W', 187.96, 280.67 + 76.2,
-      fields={'ref_at': (189.99, 278.13 + 76.2, 90), 'val_at': (187.96, 278.13 + 76.2, 90),
-              'tol_at': (185.93, 278.13 + 76.2, 90)}, tol='5%')
+place('R303', 'Device:R', '220k/2W', 187.96, 280.67 + PSU_DY,
+      fields={'ref_at': (189.99, 278.13 + PSU_DY, 90), 'val_at': (187.96, 278.13 + PSU_DY, 90),
+              'tol_at': (185.93, 278.13 + PSU_DY, 90)}, tol='5%')
 wire((176.53, YP), (187.96, YP)); junc((187.96, YP))
 wire((187.96, YP), pin('R303', 1))
 wire(pin('R303', 2), (187.96, YM))
-wire((176.53, YP), (176.53, 266.7 + 76.2)); glabel('+300V', (176.53, 266.7 + 76.2), rot=0, just='left')
+wire((176.53, YP), (176.53, 266.7 + PSU_DY))
 # masa filtra (jeden wspolny szyna GND, rozciagnieta az do elewacji
 # R305/C304 - patrz nizej)
 wire(pin('C302', 2), (151.13, YM))
@@ -422,59 +438,69 @@ wire(pin('C303', 2), (176.53, YM))
 wire((146.05, YM), (151.13, YM), (176.53, YM), (187.96, YM), (210.82, YM), (218.44, YM))
 for x in (151.13, 176.53, 187.96, 210.82, 218.44):
     junc((x, YM))
-gnd(160.02, 313.69 + 76.2)
-wire((160.02, YM), (160.02, 313.69 + 76.2))
+gnd(160.02, 313.69 + PSU_DY)
+wire((160.02, YM), (160.02, 313.69 + PSU_DY))
 junc((160.02, YM))
 
 # --- elewacja zarzenia (+ELEV z B+ przez dzielnik) ---
-place('R304', 'Device:R', '220k', 210.82, 281.94 + 76.2,
-      fields={'ref_at': (212.09, 279.4 + 76.2, 0), 'val_at': (212.09, 281.94 + 76.2, 0)})
-place('R305', 'Device:R', '47k', 210.82, 294.64 + 76.2,
-      fields={'ref_at': (204.47, 293.37 + 76.2, 0), 'val_at': (208.28, 295.91 + 76.2, 0), 'val_just': 'right'})
-wire(pin('R304', 1), (210.82, 266.7 + 76.2))
-glabel('+300V', (210.82, 266.7 + 76.2), rot=0, just='left')
-wire(pin('R304', 2), (210.82, 288.29 + 76.2))
-wire((210.82, 288.29 + 76.2), pin('R305', 1))
+place('R304', 'Device:R', '220k', 210.82, 281.94 + PSU_DY,
+      fields={'ref_at': (212.09, 279.4 + PSU_DY, 0), 'val_at': (212.09, 281.94 + PSU_DY, 0)})
+place('R305', 'Device:R', '47k', 210.82, 294.64 + PSU_DY,
+      fields={'ref_at': (204.47, 293.37 + PSU_DY, 0), 'val_at': (208.28, 295.91 + PSU_DY, 0), 'val_just': 'right'})
+wire(pin('R304', 1), (210.82, 266.7 + PSU_DY))
+wire(pin('R304', 2), (210.82, 288.29 + PSU_DY))
+wire((210.82, 288.29 + PSU_DY), pin('R305', 1))
 wire(pin('R305', 2), (210.82, YM))
-place('C304', 'Device:C_Polarized', '10u/100V', 218.44, 294.64 + 76.2,
-      fields={'ref_at': (220.98, 296.52 + 76.2, 0), 'val_at': (220.98, 299.06 + 76.2, 0),
-              'tol_at': (220.98, 301.6 + 76.2, 0)}, tol='20%')
-wire((210.82, 288.29 + 76.2), (218.44, 288.29 + 76.2), pin('C304', 1))
-junc((210.82, 288.29 + 76.2))
+place('C304', 'Device:C_Polarized', '10u/100V', 218.44, 294.64 + PSU_DY,
+      fields={'ref_at': (220.98, 296.52 + PSU_DY, 0), 'val_at': (220.98, 299.06 + PSU_DY, 0),
+              'tol_at': (220.98, 301.6 + PSU_DY, 0)}, tol='20%')
+wire((210.82, 288.29 + PSU_DY), (218.44, 288.29 + PSU_DY), pin('C304', 1))
+junc((210.82, 288.29 + PSU_DY))
 wire(pin('C304', 2), (218.44, YM))
-label('ELEV', (213.36, 288.29 + 76.2))
+label('ELEV', (213.36, 288.29 + PSU_DY))
 
 # --- rozladowanie B+ (K1 + R306), 1:1 z riaa/common ---
-place('K1', 'Relay:Relay_SPDT', '9V', 242.57, 280.67 + 76.2,
-      fields={'ref_at': (251.46, 283.21 + 76.2, 0), 'val_at': (251.46, 285.75 + 76.2, 0)})
-place('D305', 'Device:D', '1N4007', 229.87, 280.67 + 76.2, rot=270,
-      fields={'ref_at': (222.25, 276.86 + 76.2, 0), 'val_at': (227.33, 279.4 + 76.2, 0), 'val_just': 'right'})
-place('R306', 'Device:R', '4k7/10W', 247.65, 294.64 + 76.2,
-      fields={'ref_at': (240.03, 292.1 + 76.2, 0), 'val_at': (245.11, 295.91 + 76.2, 0), 'val_just': 'right'})
-wire(pin('K1', 'A1'), (237.49, 270.51 + 76.2), (231.14, 270.51 + 76.2))
-label('V_RAW', (231.14, 270.51 + 76.2), just='right bottom')
+place('K1', 'Relay:Relay_SPDT', '9V', 242.57, 280.67 + PSU_DY,
+      fields={'ref_at': (251.46, 283.21 + PSU_DY, 0), 'val_at': (251.46, 285.75 + PSU_DY, 0)})
+place('D305', 'Device:D', '1N4007', 229.87, 280.67 + PSU_DY, rot=270,
+      fields={'ref_at': (222.25, 276.86 + PSU_DY, 0), 'val_at': (227.33, 279.4 + PSU_DY, 0), 'val_just': 'right'})
+place('R306', 'Device:R', '4k7/10W', 247.65, 294.64 + PSU_DY,
+      fields={'ref_at': (240.03, 292.1 + PSU_DY, 0), 'val_at': (245.11, 295.91 + PSU_DY, 0), 'val_just': 'right'})
+wire(pin('K1', 'A1'), (237.49, 270.51 + PSU_DY), (231.14, 270.51 + PSU_DY))
+label('V_RAW', (231.14, 270.51 + PSU_DY), just='right bottom')
 # V_RAW zasilany tylko przez diody mostka (nie "power output" dla ERC) ->
 # jeden PWR_FLAG na cala siec, zeby U301.VI (power input) mial sterownik.
-pwrflag(231.14, 270.51 + 76.2 - 2.54)
-wire((231.14, 270.51 + 76.2), (231.14, 270.51 + 76.2 - 2.54))
-wire(pin('K1', 'A2'), (237.49, 293.37 + 76.2), (231.14, 293.37 + 76.2))
-label('ELEV', (231.14, 293.37 + 76.2), just='right bottom')
-wire(pin('D305', 1), (229.87, 273.05 + 76.2), (237.49, 273.05 + 76.2)); junc((237.49, 273.05 + 76.2))
-wire(pin('D305', 2), (229.87, 288.29 + 76.2), (237.49, 288.29 + 76.2)); junc((237.49, 288.29 + 76.2))
-wire(pin('K1', 12), (245.11, 267.97 + 76.2))
-glabel('+300V', (245.11, 267.97 + 76.2), rot=0, just='left')
+pwrflag(231.14, 270.51 + PSU_DY - 2.54)
+wire((231.14, 270.51 + PSU_DY), (231.14, 270.51 + PSU_DY - 2.54))
+wire(pin('K1', 'A2'), (237.49, 293.37 + PSU_DY), (231.14, 293.37 + PSU_DY))
+label('ELEV', (231.14, 293.37 + PSU_DY), just='right bottom')
+wire(pin('D305', 1), (229.87, 273.05 + PSU_DY), (237.49, 273.05 + PSU_DY)); junc((237.49, 273.05 + PSU_DY))
+wire(pin('D305', 2), (229.87, 288.29 + PSU_DY), (237.49, 288.29 + PSU_DY)); junc((237.49, 288.29 + PSU_DY))
+wire(pin('K1', 12), (245.11, 267.97 + PSU_DY))
 noconn(pin('K1', 14))
-wire(pin('K1', 11), (247.65, 290.83 + 76.2))
-wire(pin('R306', 2), (247.65, 300.99 + 76.2)); gnd(247.65, 300.99 + 76.2)
-text("Rozladowanie: przy zaniku sieci K1 zwalnia, styk NC (11-12) laczy +300V z R306", 218.44, 320.04 + 76.2, 1.27)
-text("-> B+ <50V w ok. 15 s. K1: cewka 9V (V_RAW), styki min. 250V. Bleeder R303 = wolna 2. linia.", 218.44, 322.58 + 76.2, 1.27)
+wire(pin('K1', 11), (247.65, 290.83 + PSU_DY))
+wire(pin('R306', 2), (247.65, 300.99 + PSU_DY)); gnd(247.65, 300.99 + PSU_DY)
+text("Rozladowanie: przy zaniku sieci K1 zwalnia, styk NC (11-12) laczy +300V z R306", 218.44, 320.04 + PSU_DY, 1.27)
+text("-> B+ <50V w ok. 15 s. K1: cewka 9V (V_RAW), styki min. 250V. Bleeder R303 = wolna 2. linia.", 218.44, 322.58 + PSU_DY, 1.27)
+
+# --- B+ (+300V) bus: laczy 3 punkty zasilacza (CLC, R304/elewacja, K1) z
+#     korytarzami obu kanalow (chan(), BUS_X=245.11) - hybryda "druty
+#     zamiast etykiet" (DECYZJA 2026-09-08), zastepuje global_label('+300V')
+#     z commitu fc227e8.
+_bp_y1 = 266.7 + PSU_DY   # = poziom CLC (176.53) i R304 (210.82)
+_bp_y2 = 267.97 + PSU_DY  # = poziom K1 pin12 (245.11 = BUS_X)
+wire((176.53, _bp_y1), (210.82, _bp_y1)); junc((210.82, _bp_y1))
+wire((210.82, _bp_y1), (BUS_X, _bp_y1))
+wire((BUS_X, _bp_y1), (BUS_X, _bp_y2))
+wire((BUS_X, 80.01), (BUS_X, 185.42)); junc((BUS_X, 185.42))
+wire((BUS_X, 185.42), (BUS_X, _bp_y1)); junc((BUS_X, _bp_y1))
 
 # --- zarzenie: 7V -> mostek 1N5822 -> 10000u -> LD1085 (LDO) -> HEAT_A/HEAT_B ---
-YHP, YHM = 312.42 + 76.2, 335.28 + 76.2
-place('D306', 'Device:D', '1N5822', 287.02, 316.23 + 76.2, rot=270)
-place('D307', 'Device:D', '1N5822', 299.72, 316.23 + 76.2, rot=270)
-place('D308', 'Device:D', '1N5822', 287.02, 331.47 + 76.2, rot=270)
-place('D309', 'Device:D', '1N5822', 299.72, 331.47 + 76.2, rot=270)
+YHP, YHM = 312.42 + PSU_DY, 335.28 + PSU_DY
+place('D306', 'Device:D', '1N5822', 287.02, 316.23 + PSU_DY, rot=270)
+place('D307', 'Device:D', '1N5822', 299.72, 316.23 + PSU_DY, rot=270)
+place('D308', 'Device:D', '1N5822', 287.02, 331.47 + PSU_DY, rot=270)
+place('D309', 'Device:D', '1N5822', 299.72, 331.47 + PSU_DY, rot=270)
 # AC1 (T301 sec zarzenia, pin5=SC) - D306.A / D308.K
 wire(pin('D306', 2), pin('D308', 1))
 wire(pin('T301', 5), (116.84, 400.05), (287.02, 400.05))
@@ -484,12 +510,12 @@ junc((287.02, 400.05))
 wire(pin('D307', 2), pin('D309', 1))
 wire(pin('T301', 6), (119.38, 383.54), (119.38, 403.86), (299.72, 403.86))
 junc((299.72, 403.86))
-place('C305', 'Device:C_Polarized', '10000u/16V', 317.5, 316.23 + 76.2, tol='20%')
-place('C306', 'Device:C_Polarized', '470u/25V', 337.82, 316.23 + 76.2,
-      fields={'ref_at': (331.47, 320.04 + 76.2, 0), 'val_at': (336.55, 323.85 + 76.2, 0),
-              'tol_at': (336.55, 326.39 + 76.2, 0), 'val_just': 'right'}, tol='20%')
+place('C305', 'Device:C_Polarized', '10000u/16V', 317.5, 316.23 + PSU_DY, tol='20%')
+place('C306', 'Device:C_Polarized', '470u/25V', 337.82, 316.23 + PSU_DY,
+      fields={'ref_at': (331.47, 320.04 + PSU_DY, 0), 'val_at': (336.55, 323.85 + PSU_DY, 0),
+              'tol_at': (336.55, 326.39 + PSU_DY, 0), 'val_just': 'right'}, tol='20%')
 place('U301', 'Regulator_Linear:LM317_TO-220', 'LD1085 (LDO)', 351.79, YHP,
-      fields={'ref_at': (356.87, 303.53 + 76.2, 0), 'val_at': (356.87, 306.07 + 76.2, 0)})
+      fields={'ref_at': (356.87, 303.53 + PSU_DY, 0), 'val_at': (356.87, 306.07 + PSU_DY, 0)})
 wire(pin('D306', 1), (299.72, YHP), (317.5, YHP))
 junc((299.72, YHP)); junc((317.5, YHP))
 wire((317.5, YHP), pin('C305', 1))
@@ -497,21 +523,21 @@ wire((317.5, YHP), (337.82, YHP)); junc((337.82, YHP))
 label('V_RAW', (320.04, YHP))
 wire((337.82, YHP), pin('C306', 1))
 wire((337.82, YHP), pin('U301', 3))
-place('R307', 'Device:R', '240R', 364.49, 316.23 + 76.2, tol='1%')
-place('R308', 'Device:R', '976R', 364.49, 326.39 + 76.2,
-      fields={'ref_at': (358.14, 321.31 + 76.2, 0), 'val_at': (356.87, 326.39 + 76.2, 0),
-              'tol_at': (356.87, 328.93 + 76.2, 0), 'val_just': 'right'}, tol='1%')
-place('C307', 'Device:C_Polarized', '10u/25V', 372.11, 323.85 + 76.2,
-      fields={'ref_at': (374.65, 320.04 + 76.2, 0), 'val_at': (374.65, 328.93 + 76.2, 0),
-              'tol_at': (374.65, 331.47 + 76.2, 0)}, tol='20%')
-place('C308', 'Device:C', '1u', 379.73, 316.23 + 76.2,
-      fields={'ref_at': (382.27, 315.29 + 76.2, 0), 'val_at': (382.27, 317.83 + 76.2, 0)})
+place('R307', 'Device:R', '240R', 364.49, 316.23 + PSU_DY, tol='1%')
+place('R308', 'Device:R', '976R', 364.49, 326.39 + PSU_DY,
+      fields={'ref_at': (358.14, 321.31 + PSU_DY, 0), 'val_at': (356.87, 326.39 + PSU_DY, 0),
+              'tol_at': (356.87, 328.93 + PSU_DY, 0), 'val_just': 'right'}, tol='1%')
+place('C307', 'Device:C_Polarized', '10u/25V', 372.11, 323.85 + PSU_DY,
+      fields={'ref_at': (374.65, 320.04 + PSU_DY, 0), 'val_at': (374.65, 328.93 + PSU_DY, 0),
+              'tol_at': (374.65, 331.47 + PSU_DY, 0)}, tol='20%')
+place('C308', 'Device:C', '1u', 379.73, 316.23 + PSU_DY,
+      fields={'ref_at': (382.27, 315.29 + PSU_DY, 0), 'val_at': (382.27, 317.83 + PSU_DY, 0)})
 wire(pin('U301', 2), (364.49, YHP)); junc((364.49, YHP))
 wire((364.49, YHP), pin('R307', 1))
-wire(pin('U301', 1), (351.79, 320.04 + 76.2), (364.49, 320.04 + 76.2))
+wire(pin('U301', 1), (351.79, 320.04 + PSU_DY), (364.49, 320.04 + PSU_DY))
 wire(pin('R307', 2), pin('R308', 1))
-junc((364.49, 320.04 + 76.2))
-wire((364.49, 320.04 + 76.2), (372.11, 320.04 + 76.2), pin('C307', 1))
+junc((364.49, 320.04 + PSU_DY))
+wire((364.49, 320.04 + PSU_DY), (372.11, 320.04 + PSU_DY), pin('C307', 1))
 wire(pin('R308', 2), (364.49, YHM))
 wire(pin('C307', 2), (372.11, YHM))
 wire((364.49, YHP), (379.73, YHP)); junc((379.73, YHP))
@@ -527,34 +553,53 @@ for x in (299.72, 317.5, 337.82, 364.49, 372.11, 379.73):
 label('HEAT_B', (387.35, YHM))
 wire((287.02, YHM), (281.94, YHM))
 label('ELEV', (281.94, YHM), just='right bottom')
-# brak PWR_FLAG tutaj: HEAT_A juz ma sterownik (U301.VO), HEAT_B ma
-# PWR_FLAG postawiony przy grzaniu lamp (Etap 5a) - druga flaga na tym
-# samym wezle daje ERC error "Power output and Power output connected".
+# HEAT_A ma sterownik (U301.VO); HEAT_B (powrot zarzenia) - PWR_FLAG tutaj,
+# na koncu drutu wychodzacego z bloku (Etap 6, DECYZJA 2026-09-08: zarniki
+# lamp nie sa rysowane - flaga z Etapu 5a przy grzaniu lamp usunieta razem
+# z tamtym blokiem, przeniesiona tutaj, jedyne miejsce gdzie siec HEAT_B
+# jeszcze istnieje).
+pwrflag(387.35, YHM + 2.54, rot=180)
+wire((387.35, YHM), (387.35, YHM + 2.54))
 junc((384.81, YHP)); junc((384.81, YHM))
-text("Zarzenie: 6,3V DC / ok. 0,3A z uzwojenia 7V (3 lampy). LD1085 (LDO) - LM317 ma za duzy dropout.", 218.44, 344.17 + 76.2, 1.27)
-text("Skrecona para na przewodach zarzenia. LD1085: blaszka = VOUT - izolacja od chassis.", 218.44, 346.71 + 76.2, 1.27)
+text("Zarzenie: 6,3V DC / ok. 0,3A z uzwojenia 7V (3 lampy). LD1085 (LDO) - LM317 ma za duzy dropout.", 218.44, 344.17 + PSU_DY, 1.27)
+text("Skrecona para na przewodach zarzenia. LD1085: blaszka = VOUT - izolacja od chassis.", 218.44, 346.71 + PSU_DY, 1.27)
+text("Zarzenie do lamp (skrecona para): ECC82 piny 4+5 -> HEAT_A, pin 9 -> HEAT_B;", 218.44, 349.25 + PSU_DY, 1.27)
+text("EL84 (x2) pin 4 -> HEAT_A, pin 5 -> HEAT_B. Zarniki NIE sa rysowane (patrz docs).", 218.44, 351.79 + PSU_DY, 1.27)
 
 # --- ground breaker (jedyny styk masy z chassis) ---
-place('R309', 'Device:R', '10R/5W', 45.72, 325.12 + 76.2,
+place('R309', 'Device:R', '10R/5W', 45.72, 325.12 + PSU_DY,
       fields={'ref_at': (39.37, 401.32, 90), 'val_at': (41.4, 401.32, 90)})
-place('D310', 'Device:D', '1N5408', 55.88, 325.12 + 76.2, rot=270,
+place('D310', 'Device:D', '1N5408', 55.88, 325.12 + PSU_DY, rot=270,
       fields={'ref_at': (58.42, 398.78, 0), 'val_at': (58.42, 401.32, 0)})
-place('D311', 'Device:D', '1N5408', 66.04, 325.12 + 76.2, rot=90,
+place('D311', 'Device:D', '1N5408', 66.04, 325.12 + PSU_DY, rot=90,
       fields={'ref_at': (68.58, 398.78, 0), 'val_at': (68.58, 401.32, 0)})
-place('C309', 'Device:C', '100n/630V', 76.2, 325.12 + 76.2,
+place('C309', 'Device:C', '100n/630V', 76.2, 325.12 + PSU_DY,
       fields={'ref_at': (79.5, 401.32, 90), 'val_at': (81.5, 401.32, 90),
               'tol_at': (83.5, 401.32, 90)}, tol='10%')
-wire((40.64, 321.31 + 76.2), (45.72, 321.31 + 76.2), (55.88, 321.31 + 76.2), (66.04, 321.31 + 76.2), (76.2, 321.31 + 76.2))
-wire((43.18, 328.93 + 76.2), (45.72, 328.93 + 76.2), (55.88, 328.93 + 76.2), (66.04, 328.93 + 76.2), (76.2, 328.93 + 76.2))
+wire((40.64, 321.31 + PSU_DY), (45.72, 321.31 + PSU_DY), (55.88, 321.31 + PSU_DY), (66.04, 321.31 + PSU_DY), (76.2, 321.31 + PSU_DY))
+wire((43.18, 328.93 + PSU_DY), (45.72, 328.93 + PSU_DY), (55.88, 328.93 + PSU_DY), (66.04, 328.93 + PSU_DY), (76.2, 328.93 + PSU_DY))
 for x in (45.72, 55.88, 66.04):
-    junc((x, 321.31 + 76.2)); junc((x, 328.93 + 76.2))
-gnd(40.64, 321.31 + 76.2)
-pe(43.18, 328.93 + 76.2, rot=180)
-text("Ground breaker (jedyny styk masy z chassis): 10R przerywa petle masy;", 27.94, 340.36 + 76.2, 1.27)
-text("przy usterce diody zwieraja GND do PE i bezpiecznik zadziala.", 27.94, 342.9 + 76.2, 1.27)
+    junc((x, 321.31 + PSU_DY)); junc((x, 328.93 + PSU_DY))
+gnd(40.64, 321.31 + PSU_DY)
+pe(43.18, 328.93 + PSU_DY, rot=180)
+text("Ground breaker (jedyny styk masy z chassis): 10R przerywa petle masy;", 27.94, 340.36 + PSU_DY, 1.27)
+text("przy usterce diody zwieraja GND do PE i bezpiecznik zadziala.", 27.94, 342.9 + PSU_DY, 1.27)
 
-text("UWAGA: napiecia do ok. 330V DC - smiertelnie niebezpieczne. Po wylaczeniu odczekac na", 27.94, 424.18, 1.6)
-text("rozladowanie (K1) i SPRAWDZIC woltomierzem KAZDA sekcje (<50V) przed praca.", 27.94, 426.72, 1.6)
+text("UWAGA: napiecia do ok. 330V DC - smiertelnie niebezpieczne. Po wylaczeniu odczekac na", 27.94, 347.98 + PSU_DY, 1.6)
+text("rozladowanie (K1) i SPRAWDZIC woltomierzem KAZDA sekcje (<50V) przed praca.", 27.94, 350.52 + PSU_DY, 1.6)
+
+# =======================================================================
+#  RAMKI MODULOW (Etap A, DECYZJA 2026-09-08 "layout w ramkach") - czysto
+#  graficzne (rectangle na arkuszu), druty moga je przechodzic swobodnie.
+#  WEJSCIE/WYJSCIE rezerwowane puste (komponenty - Etap B, crossfeed+gniazda).
+# =======================================================================
+frame(15, 15, 255, 68, "WEJSCIE: gniazda RCA, crossfeed S1, glosnosc RV1")
+frame(15, 74, 255, 177, "KANAL L: 1/2 ECC82 -> EL84 (trioda) -> OPT")
+frame(15, 179.41, 255, 282.41, "KANAL P: 1/2 ECC82 -> EL84 (trioda) -> OPT")
+frame(262, 130, 330, 235, "WYJSCIE: jack 6,3 mm")
+frame(15, 340, 122, 430, "SIEC 230V + ground breaker")
+frame(122, 340, 262, 430, "ZASILACZ B+ 300V (CLC) + rozladowanie K1")
+frame(262, 340, 400, 430, "ZARZENIE 6,3V DC (LD1085, elewacja ELEV)")
 
 # =======================================================================
 #  serialize
@@ -598,6 +643,11 @@ for (a, b) in WIRES:
 for p in NOCONN:
     out.append('  (no_connect (at %s %s) (uuid %s))'
                % (fmt(p[0]), fmt(p[1]), U('noconn:%s,%s' % (fmt(p[0]), fmt(p[1])))))
+for (x0, y0, x1, y1) in FRAMES:
+    out.append('  (rectangle (start %s %s) (end %s %s) (stroke (width 0.254) (type default)) '
+                '(fill (type none)) (uuid %s))'
+                % (fmt(x0), fmt(y0), fmt(x1), fmt(y1),
+                   U('frame:%s,%s-%s,%s' % (fmt(x0), fmt(y0), fmt(x1), fmt(y1)))))
 for (name, p, rot, just) in LABELS:
     out.append('  (label "%s" (at %s %s %d) (effects (font (size 1.27 1.27)) (justify %s)) (uuid %s))'
                 % (name, fmt(p[0]), fmt(p[1]), rot, just,
