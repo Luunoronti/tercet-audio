@@ -336,20 +336,35 @@ chan(dy=105.41, lbl='R', potunit=2, u1unit=2, elref='U202', tref='T201', swref='
 #  Krzyzowa: R403(2k2) -> mL -> C403(220n) do masy, -> R405(3k3) -> outR
 #  (przeciwny kanal); mirror: R404/mR/C404/R406 -> outL.
 # =======================================================================
-place('J401', 'Connector:Conn_Coaxial', 'IN L (RCA)', 26.67, 30.48, mirror='y')
-place('J402', 'Connector:Conn_Coaxial', 'IN R (RCA)', 26.67, 53.34, mirror='y')
-place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 33.02, unit=1)
+def _rv(x, y):
+    """Pola ref/value dla R pionowego (rot=90) - stos wzdluz Y jak w chan()."""
+    return {'ref_at': (x, y - 2.032, 90), 'val_at': (x, y, 90)}
+
+
+def _cv(x, y):
+    """Pola ref/value dla C pionowego (rot=90) - obok w X jak C1 w chan()."""
+    return {'ref_at': (x - 2.54, y - 0.635, 0), 'val_at': (x + 2.54, y - 0.635, 0)}
+
+
+place('J401', 'Connector:Conn_Coaxial', 'IN L (RCA)', 26.67, 30.48, mirror='y',
+      fields={'ref_at': (16.51, 27.94, 0), 'val_at': (16.51, 33.02, 0)})
+place('J402', 'Connector:Conn_Coaxial', 'IN R (RCA)', 26.67, 53.34, mirror='y',
+      fields={'ref_at': (16.51, 50.8, 0), 'val_at': (16.51, 55.88, 0)})
+place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 33.02, unit=1,
+      fields={'ref_at': (74.93, 24.13, 0), 'val_at': (74.93, 40.64, 0)})
 place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 45.72, unit=2)
-place('R401', 'Device:R', '1k', 154.94, 26.67, rot=90)
-place('C401', 'Device:C', '470n', 165.1, 26.67, rot=90)
-place('R402', 'Device:R', '1k', 154.94, 60.96, rot=90)
-place('C402', 'Device:C', '470n', 165.1, 60.96, rot=90)
-place('R403', 'Device:R', '2k2', 105.41, 26.67, rot=90)
-place('C403', 'Device:C', '220n', 116.84, 33.02, rot=90)
-place('R405', 'Device:R', '3k3', 130.81, 33.02)
-place('R404', 'Device:R', '2k2', 105.41, 60.96, rot=90)
-place('C404', 'Device:C', '220n', 116.84, 45.72, rot=90)
-place('R406', 'Device:R', '3k3', 130.81, 45.72)
+place('R401', 'Device:R', '1k', 154.94, 26.67, rot=90, fields=_rv(154.94, 26.67))
+place('C401', 'Device:C', '470n', 165.1, 26.67, rot=90, fields=_cv(165.1, 26.67))
+place('R402', 'Device:R', '1k', 154.94, 60.96, rot=90, fields=_rv(154.94, 60.96))
+place('C402', 'Device:C', '470n', 165.1, 60.96, rot=90, fields=_cv(165.1, 60.96))
+place('R403', 'Device:R', '2k2', 105.41, 26.67, rot=90, fields=_rv(105.41, 26.67))
+place('C403', 'Device:C', '220n', 116.84, 33.02, rot=90, fields=_cv(116.84, 33.02))
+place('R405', 'Device:R', '3k3', 130.81, 33.02,
+      fields={'ref_at': (132.842, 33.02, 90), 'val_at': (130.81, 33.02, 90)})
+place('R404', 'Device:R', '2k2', 105.41, 60.96, rot=90, fields=_rv(105.41, 60.96))
+place('C404', 'Device:C', '220n', 116.84, 45.72, rot=90, fields=_cv(116.84, 45.72))
+place('R406', 'Device:R', '3k3', 130.81, 45.72,
+      fields={'ref_at': (132.842, 45.72, 90), 'val_at': (130.81, 45.72, 90)})
 
 # --- wejscia (jack -> bus IN_L/IN_R, x=45 - zasila zarowno tor prosty
 #     R401/C401 (R402/C402) jak i wspolny (COM) SW401) ---
@@ -409,15 +424,15 @@ wire(pin('R406', 2), (175.26, 49.53))
 #  WYJSCIE (Etap B): jack sluchawkowy 6,3mm TRS J403 (DT 770 M, 80R).
 #  T=L (T1 wtorne), R=P (T201 wtorne), S=GND (wspolna, jak wtorne OPT).
 # =======================================================================
-place('J403', 'Connector_Audio:AudioJack3', 'jack 6,3mm TRS (DT 770 M 80R)', 299.72, 165.1)
+place('J403', 'Connector_Audio:AudioJack3', 'jack 6,3mm TRS (DT 770 M 80R)', 299.72, 190.5,
+      fields={'ref_at': (289.56, 200.66, 0), 'val_at': (277.24, 205.74, 0)})
 wire((222.25, 102.87), (285.75, 102.87), (285.75, pin('J403', 'T')[1]))
 wire((285.75, pin('J403', 'T')[1]), pin('J403', 'T'))
 junc((285.75, 102.87))
 wire((222.25, 208.28), (280.67, 208.28), (280.67, pin('J403', 'R')[1]))
 wire((280.67, pin('J403', 'R')[1]), pin('J403', 'R'))
 junc((280.67, 208.28))
-wire(pin('J403', 'S'), (304.8, 149.86)); gnd(304.8, 149.86)
-text("jack 6,3 mm TRS, DT 770 M 80R", 262.0, 155.0, 1.27)
+wire(pin('J403', 'S'), (304.8, 175.26)); gnd(304.8, 175.26)
 
 # --- zarniki lamp NIE SA RYSOWANE (DECYZJA 2026-09-08) - unity grzania
 #     ECC82 (U1 unit3), EL84 audio L (U2 unit2), EL84 audio P (U202 unit2)
