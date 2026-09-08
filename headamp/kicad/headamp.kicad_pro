@@ -1,0 +1,7 @@
+{
+  "board": { "design_settings": {}, "layer_presets": [], "viewports": [] },
+  "libraries": { "pinned_footprint_libs": [], "pinned_symbol_libs": [] },
+  "meta": { "filename": "headamp.kicad_pro", "version": 3 },
+  "sheets": [ [ "0e453a9d-84de-41d2-b1bb-116022133478", "Root" ] ],
+  "text_variables": {}
+}

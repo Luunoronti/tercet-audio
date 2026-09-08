@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 import symlib
 
-NETFILE = os.path.join(os.path.dirname(__file__), 'headamp.net')
+NETFILE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), 'headamp.net')
 
 tree, _ = symlib.parse(symlib.tokenize(open(NETFILE, encoding='utf-8').read()), 0)
 nets = {}
