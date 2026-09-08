@@ -19,3 +19,6 @@ headamp/svg_out/
 headamp/*.pdf
 headamp/headamp.net
 !headamp/ref/layout_top.png
+
+# KiCad 10 - lokalna historia projektu
+.history/
