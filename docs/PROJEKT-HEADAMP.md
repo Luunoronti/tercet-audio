@@ -191,6 +191,28 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Layout w ramkach modułów + hybryda "druty zamiast etykiet" dla B+
   (Etap 6/A) - patrz "Decyzje - Etap 6".
 - Kolejne kroki i stan narzędzi (Konnect/KiCad): patrz CLAUDE.md w korzeniu.
+- **DECYZJA 2026-09-08: nowy projekt `headamp/kicad/headamp.kicad_pro` +
+  `headamp.kicad_sch`** do dalszej edycji ręcznej w Eeschema. Kopia
+  schematu z `gen.py` (ta sama treść `.kicad_sch`, format 20231120), z
+  NOWYM uuid arkusza (uuid4) - podmienione konsekwentnie w header i we
+  wszystkich blokach `instances`, żeby referencje (R1, U1...) nie
+  zgubiły przypisania. `.kicad_pro` minimalny jak pierwotny (7 pól: board,
+  libraries, meta, sheets [[uuid, "Root"]], text_variables) - bez tablic
+  bibliotek (symbole są osadzone w `lib_symbols`). Weryfikacja: netlista
+  nowego pliku programowo porównana ze starym - identyczna partycja par
+  (ref,pin) na sieciach (58 sieci, 0 różnic; nazwy sieci auto pominięte w
+  porównaniu, bo schemat nie ma etykiet nazwanych netów); `check.py`
+  (rozszerzone o opcjonalny argument ścieżki netlisty, domyślnie stara)
+  OK na obu; ERC nowego pliku 0 błędów/0 ostrzeżeń; PDF wyeksportowany do
+  `headamp/ref/headamp_kicad.pdf`. Od teraz **`headamp/kicad/headamp.kicad_sch`
+  = plik roboczy edytowany ręcznie w Eeschema przez użytkownika** (zmiany
+  przez Claude tylko bezpośrednią edycją pliku/skryptami, BEZ MCP
+  Konnect); **`headamp/gen.py` + `headamp/headamp.kicad_sch` = archiwalny
+  pierwowzór (stan 2026-09-08), nie rozwijany dalej**. `.gitignore` nie
+  wymagał zmian - istniejące wzorce (`*.kicad_prl`, `*-backups/`,
+  `_autosave-*`, `*.lck`, `fp-info-cache`) łapią też artefakty w
+  `headamp/kicad/` (zweryfikowane `git check-ignore -v`). Workflow
+  weryfikacji po edycji: patrz `headamp/README.md` / CLAUDE.md.
 
 ## TODO (aktualizacja po kosmetyce arkusza - skreslone zrobione)
 - ~~gen.py + check.py (kanał L port 1:1)~~ ZROBIONE (Etap 0-1).

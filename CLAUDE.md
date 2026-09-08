@@ -54,6 +54,22 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   docs/PROJEKT-HEADAMP.md.
 - Pełna pamięć projektu: `docs/PROJEKT-HEADAMP.md` (wymagania, decyzje,
   wartości, wyniki symulacji, TODO).
+- **DECYZJA 2026-09-08: nowy projekt `headamp/kicad/headamp.kicad_pro` +
+  `headamp.kicad_sch`** — kopia schematu wygenerowanego przez gen.py
+  (netlista równoważna, zweryfikowane programowo), z NOWYM uuid arkusza.
+  To jest teraz **plik roboczy edytowany ręcznie w Eeschema przez
+  użytkownika**; zmiany przez Claude tylko przez bezpośrednią edycję
+  pliku/skrypty — **bez MCP Konnect** (tryb offline, tylko pliki/Python/
+  kicad-cli). `headamp/gen.py` + `headamp/headamp.kicad_sch` pozostają
+  jako **archiwalny pierwowzór (stan 2026-09-08), nie rozwijany dalej**.
+  Workflow weryfikacji po ręcznej edycji `headamp/kicad/headamp.kicad_sch`:
+  eksport netlisty (`kicad-cli sch export netlist --format kicadsexpr`)
+  → `python headamp/check.py <ścieżka_netlisty>` (argument opcjonalny,
+  domyślnie stara netlista) → `kicad-cli sch erc --format json
+  --severity-all` (oczekiwane 0/0) → `kicad-cli sch export pdf -o
+  headamp/ref/headamp_kicad.pdf headamp/kicad/headamp.kicad_sch`. KiCad
+  10 przy pierwszym zapisie w Eeschema zaktualizuje format pliku z
+  20231120 do 20260306 — to normalne.
 
 ## Następne kroki headamp (kolejność sugerowana)
 1. BOM (TME) + specyfikacja OPT dla nawijacza.

@@ -66,7 +66,23 @@ Szczegóły i log decyzji: `docs/PROJEKT-HEADAMP.md`.
   na nóżkach podstawek lamp vs listwy lutownicze A/B_L/B_P/D, z numerami
   pinów (ECC82/EL84) i uzasadnieniem.
 
-## Workflow (regeneracja schematu)
+## Projekt roboczy (edycja ręczna)
+`kicad/headamp.kicad_pro` + `kicad/headamp.kicad_sch` — kopia schematu
+wygenerowanego niżej (netlista równoważna, DECYZJA 2026-09-08), z
+nowym uuid arkusza. To jest **plik roboczy edytowany ręcznie w Eeschema
+przez użytkownika** (bez MCP Konnect); `gen.py`/`headamp.kicad_sch` w tym
+katalogu (`headamp/`) to od teraz archiwalny pierwowzór, nie rozwijany
+dalej. Workflow weryfikacji po edycji `kicad/headamp.kicad_sch`:
+```
+kicad-cli sch export netlist --format kicadsexpr -o headamp/kicad/headamp.net headamp/kicad/headamp.kicad_sch
+python headamp/check.py headamp/kicad/headamp.net
+kicad-cli sch erc --format json --severity-all -o headamp/kicad/erc.json headamp/kicad/headamp.kicad_sch
+kicad-cli sch export pdf -o headamp/ref/headamp_kicad.pdf headamp/kicad/headamp.kicad_sch
+```
+Oczekiwane: check.py OK; ERC 0/0. Szczegóły: docs/PROJEKT-HEADAMP.md,
+CLAUDE.md.
+
+## Workflow (regeneracja schematu, archiwalne gen.py)
 ```
 python headamp/gen.py
 kicad-cli sch export netlist --format kicadsexpr -o headamp/headamp.net headamp/headamp.kicad_sch
