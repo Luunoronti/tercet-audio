@@ -50,11 +50,15 @@ Zasilanie: 230→250 V, mostek UF4007, 220µ + dławik 5–10 H + 220µ, B+ ~300
 elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 A.
 
 ## Przełączniki charakteru (obie funkcje pasywne, DECYZJA)
-- **S1 crossfeed (DPDT)**, między DAC a potencjometrem. Wartości po
-  strojeniu w ngspice: tor prosty R 1k ∥ C 470n; krzyżowy R 2k2 → C 220n
-  do masy → R 3k3 do przeciwnego kanału. Efekt: przesłuch −14 dB w basie,
-  wygasa >~700 Hz; strata wtrąceniowa ~1–3 dB (skok głośności przy
-  przełączaniu — normalny).
+- **S1 crossfeed (DPDT)**, między gniazdami wejściowymi a potencjometrem.
+  Wartości po strojeniu w ngspice: tor prosty R 1k ∥ C 470n; krzyżowy
+  R 2k2 → C 220n do masy → R 3k3 do przeciwnego kanału. Efekt: przesłuch
+  −14 dB w basie, wygasa >~700 Hz; strata wtrąceniowa ~1–3 dB (skok
+  głośności przy przełączaniu — normalny). **Implementacja na schemacie
+  (Etap 6, SW401):** tor prosty (R401∥C401/R402∥C402) jest ZAWSZE
+  wpięty (bypass przełącznika); SW401 przełącza tylko dopływ sygnału do
+  gałęzi krzyżowej (patrz "Decyzje - Etap 6" niżej) - `sim/crossfeed.cir`
+  jest źródłem prawdy dla dokładnej topologii.
 - **S2 "wokal do przodu" (DPST, po sekcji na kanał)**: katoda drivera ma
   C2a 1µ na stałe + C2b 100µ dołączane przełącznikiem. S2 otwarty →
   półka −3 dB poniżej ~200 Hz (lokalna degeneracja katodowa), wokal
@@ -151,19 +155,25 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Ground breaker: 1:1 z common/riaa (10R/5W + 2x1N5408 antyrownolegle
   + 100n/630V), jedyny styk masy sygnalowej (GND) z PE/chassis.
 
-## Stan realizacji (2026-09-07, po Etapie 5b)
+## Stan realizacji (2026-09-08, po Etapie 6)
 - Schemat generowany skryptem **`headamp/gen.py`** (+ `symlib.py` +
   `check.py`, wzor riaa/) - **zrodlo prawdy = gen.py, NIE edytowac
   `headamp.kicad_sch` recznie**. UUID deterministyczne (uuid5) -
   regeneracja jest idempotentna (git diff pusty przy dwoch uruchomieniach).
-- Kanal L + kanal P + zasilacz **kompletne, ERC 0 bledow**. Ostrzezenia
-  oczekiwane (5): wiszace IN_L/IN_R/OUT_L/OUT_R (do czasu gniazd/
-  crossfeedu) + multiple_net_names ELEV/HEAT_B (zamierzone, jak w
-  common/riaa).
+- Kanał L + kanał P + zasilacz + crossfeed S1 + gniazda WE/WY
+  **kompletne, layout w ramkach modułów**. ERC: ostrzeżenia oczekiwane
+  (4): missing_unit x3 (U1/U2/U202 - unity grzania nie są rysowane,
+  DECYZJA) + multiple_net_names ELEV/HEAT_B (zamierzone, jak w
+  common/riaa); **plus 3 błędy `missing_power_pin`** (te same 3 unity -
+  konsekwencja typu pinu `power_in` w bibliotece Valve, patrz "Decyzje -
+  Etap 6" i TODO - OTWARTE, wymaga decyzji użytkownika czy akceptować
+  formalnie niezerowy ERC, czy przywrócić unity grzania).
 - UWAGA numeracja na schemacie różni się od sekcji "Wartości" wyżej:
   C2=1µ (katoda, stały), C3=100µ (za SW2), C5=100n (sprzęgający),
   C6=470µ (katoda EL84), R9=100R (zwora triodowa) - kanał L; kanał P =
-  te same refy +200. Schemat (gen.py) = źródło prawdy.
+  te same refy +200; moduł wejściowy (crossfeed+gniazda) = refy 4xx
+  (J401/J402/J403, SW401, R401-R406, C401-C404). Schemat (gen.py) =
+  źródło prawdy.
 - Tolerancje (pole `Tolerance`, widoczne pod Value; DECYZJA): rezystory 5%
   (R3 1k5 katoda drivera — 1%, punkt pracy), folie C1/C5 5%, elektrolity
   20%, RV1 20%. Lampy/OPT/przełączniki bez tolerancji. Zaimplementowane
@@ -174,21 +184,109 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Zasilacz (Etap 5b): B+ wspólny 300V (CLC), elewacja 220k/47k, K1
   rozładowanie, żarzenie LD1085, ground breaker - patrz sekcja DECYZJE
   wyżej.
-- Crossfeed S1: zaprojektowany i zasymulowany (sim/crossfeed.cir),
-  JESZCZE do narysowania w gen.py (Etap kolejny).
+- Crossfeed S1 + gniazda WE/WY (Etap 6/A-B): narysowane w gen.py, wg
+  `sim/crossfeed.cir` - patrz "Decyzje - Etap 6" wyżej dla pełnego opisu.
+- Layout w ramkach modułów + hybryda "druty zamiast etykiet" dla B+
+  (Etap 6/A) - patrz "Decyzje - Etap 6".
 - Kolejne kroki i stan narzędzi (Konnect/KiCad): patrz CLAUDE.md w korzeniu.
 
 ## TODO (aktualizacja po Etapie 5b - skreslone zrobione)
 - ~~gen.py + check.py (kanał L port 1:1)~~ ZROBIONE (Etap 0-1).
 - ~~Kanał P~~ ZROBIONE (Etap 5a).
 - ~~Zasilacz (B+, żarzenie, K1, ground breaker)~~ ZROBIONE (Etap 5b).
-- Crossfeed S1 (DPDT) + gniazda WE/WY na schemacie (Etap kolejny).
+- ~~Crossfeed S1 (DPDT) + gniazda WE/WY na schemacie~~ ZROBIONE (Etap
+  6/A-B, patrz sekcja "Decyzje - Etap 6" niżej).
 - ~~Estetyka schematu (Etap 6)~~ ZROBIONE (przegląd render -> poprawki
   pól ref/value/tolerance w gen.py: domyślne offsety 3-liniowe, F1/SW1,
   J1/PWR_FLAG/Earth_Protective, R301/NE1, R303/L1, ground breaker).
-  OTWARTE: rząd grzania (HEAT_A/HEAT_B trzech lamp, wiersz F) jest
-  ciasny - etykiety nachodzą się przy niskiej rozdzielczości; czytelne
-  po przybliżeniu, do ew. dalszej poprawy.
+  Layout w ramkach (Etap A) rozwiązał też ciasnotę rzędu grzania - rząd
+  usunięty (żarniki nie są rysowane), moduły czytelne w ramkach.
+- **OTWARTE (do decyzji użytkownika): ERC pokazuje 3 błędy
+  `missing_power_pin`** (U1/U2/U202) - patrz "Decyzje - Etap 6" niżej,
+  ostatni punkt. Do rozstrzygnięcia: zaakceptować błędy jako świadomą
+  konsekwencję "żarniki nie są rysowane", czy przywrócić unity grzania
+  (z realnym okablowaniem) żeby mieć ERC=0 błędów dosłownie.
 - BOM (TME) + specyfikacja OPT dla nawijacza (5k:80, ≥45mA, Lp≥25H).
 - Zakup DT 770 M; sprawdzić sterowniki 0202 pod Windows.
 - Decyzja obudowy (seria TERCET).
+
+## Decyzje - Etap 6 (layout w ramkach, crossfeed, gniazda, 2026-09-08)
+
+**A. Hybryda "druty zamiast etykiet".** Połączenia MIĘDZY modułami
+(B+ → oba kanały i OPT, sygnał wejście → crossfeed → RV1 → kanały,
+wyjścia OPT → gniazdo słuchawkowe) są teraz rysowane prawdziwymi drutami
+(z junctions), bez global/local labels - poza HEAT_A/HEAT_B i ELEV,
+które explicite zostają etykietami (patrz punkt B) i GND/PE, które
+zostają symbolami power (fizycznie szyna masy), zgodnie z konwencją
+common/riaa. B+ (+300V): jedna magistrala pionowa `BUS_X=245,11mm`
+(`headamp/gen.py`) łącząca korytarze nad oboma kanałami (y=80,01/185,42,
+powyżej wszystkich komponentów kanału - brak kolizji) z zasilaczem (CLC,
+R304/elewacja, K1) - zamiast 7 wcześniejszych `global_label('+300V')`.
+
+**B. Żarniki lamp NIE SĄ RYSOWANE (DECYZJA).** Unity grzania ECC82 (U1
+unit3), EL84 audio L/P (U2/U202 unit2) usunięte ze schematu razem z
+drutami i etykietami po stronie lamp (dawny "rząd grzania" pod kanałem
+P, Etap 5a). Blok zasilacza (LD1085/U301) kończy się jak wcześniej
+etykietami lokalnymi **HEAT_A** (+6,3 V) i **HEAT_B** (= ELEV, minus
+żarzenia, stąd oczekiwane ostrzeżenie ERC `multiple_net_names`) na
+końcach drutów, z adnotacją tekstową na schemacie (obok U301):
+"Zarzenie do lamp (skrecona para): ECC82 piny 4+5 -> HEAT_A, pin 9 ->
+HEAT_B; EL84 (x2) pin 4 -> HEAT_A, pin 5 -> HEAT_B." - montażysta
+łączy żarniki punkt-punkt wg tego opisu, nie wg schematu.
+**Konsekwencja odkryta w tym etapie (różni się od pierwotnego briefu):**
+piny grzania w bibliotece `Valve` (ECC81 unit C, EL84 unit B) są typu
+`power_in`. KiCad ERC dla unitu z pinami `power_in`, który w ogóle nie
+jest umieszczony na schemacie, zgłasza nie tylko ostrzeżenie
+`missing_unit` (przewidziane), ale też **błąd `missing_power_pin`** (dla
+każdego z U1/U2/U202 - 3 błędy). Domyślna severity tej reguły
+(`error`) jest zapisana w `headamp.kicad_pro`
+(`erc/rule_severities/missing_power_pin`), pliku poza zakresem zmian
+generatora (nie ruszać/nie commitować - patrz CLAUDE.md) - nie da się
+więc obniżyć jej z poziomu `gen.py`/`check.py`. Efekt: ERC schematu ma
+formalnie 3 błędy, nie tylko same ostrzeżenia. Zaakceptowane jako
+świadoma, udokumentowana konsekwencja decyzji "żarniki nie są rysowane"
+- alternatywa (przywrócenie unitów z realnym okablowaniem) cofnęłaby tę
+decyzję i wymaga wyraźnego wyboru użytkownika (patrz TODO wyżej).
+
+**C. Crossfeed S1 - przełączany DPDT.** Element `SW401`
+(`Switch:SW_DPDT_x2`), Value "S1 crossfeed", numeracja 4xx (moduł
+wejściowy: J401/J402, SW401, R401-R406, C401-C404). **Topologia i
+wartości - ŹRÓDŁO PRAWDY: `headamp/sim/crossfeed.cir`** (nie opis niżej
+w tym dokumencie sprzed Etapu 6, ani wcześniejsza wersja - cir nie
+zawiera samego przełącznika, modeluje topologię z pozycją "krzyżowy"
+załączoną). Implementacja: tor prosty R401∥C401 (kanał L), R402∥C402
+(kanał P) jest **ZAWSZE wpięty** między gniazdo a RV1 (bypass
+przełącznika - w cir to węzły `l1->lout`/`r1->rout`, obecne bez
+przełącznika w ogóle). SW401 przełącza **tylko dopływ sygnału do gałęzi
+krzyżowej**: pole 1 (piny 1/2, unit1) doprowadza IN_L do R403; pole 2
+(piny 4/5, unit2) doprowadza IN_R do R404; trzeci pin każdego pola (3/6)
+jest NC - to reprezentuje pozycję "prosty" (gałąź krzyżowa odłączona,
+pływająca). Gałąź krzyżowa: R403(2k2) SW->mL, C403(220n) mL->GND,
+R405(3k3) mL->outR (przeciwny kanał); mirror: R404/mR/C404/R406->outL.
+Pozycji przełącznika (obu) nie da się zweryfikować statyczną netlistą -
+schemat rysuje jedną (załączoną) pozycję, jak w cir; `check.py` sprawdza
+to co da się sprawdzić statycznie (patrz komentarz w pliku).
+
+**D. Gniazda WE/WY.** Wejście: 2× RCA `Connector:Conn_Coaxial` - J401
+(IN L), J402 (IN R); pin sygnału -> crossfeed, ekran -> GND. Wyjście:
+TRS 6,3 mm `Connector_Audio:AudioJack3` - J403; piny T=kanał L (T1
+wtórne), R=kanał P (T201 wtórne), S=GND (wspólna z wtórnymi OPT).
+
+**E. Layout w ramkach.** Moduły w ramkach (`(rectangle ...)` na
+arkuszu, obsługiwane w formacie 20231120 - zweryfikowane) z tytułem w
+lewym górnym rogu: WEJŚCIE, KANAŁ L, KANAŁ P, WYJŚCIE, SIEĆ 230V,
+ZASILACZ B+ 300V, ŻARZENIE. Rozmieszczenie: lewo-góra WEJŚCIE;
+KANAŁ L nad KANAŁ P (środek, ta sama geometria + dy); WYJŚCIE na prawo
+od kanałów, między nimi w Y; dół (cała szerokość): SIEĆ | ZASILACZ B+ |
+ŻARZENIE.
+
+**F. Rozmiar arkusza: A2 zostaje** (DECYZJA). Treść po Etapie 6 zajmuje
+ok. 400×428 mm (blisko górnej granicy A2 w orientacji poziomej,
+594×420mm - jak w commicie sprzed tego etapu, `PSU_DY` zostawiony bez
+zmian: część współrzędnych pól/tekstów w sekcji zasilacza jest zapisana
+jako już-wyliczone wartości absolutne, nie "baza + PSU_DY", więc
+zmniejszenie tej stałej rozjechałoby je względem reszty bloku - zbyt
+ryzykowne dla zysku kilkudziesięciu mm). A3 (420×297) odpada z powodu
+wysokości treści (428 mm > 297 mm) niezależnie od szerokości. Pusta
+przestrzeń po prawej stronie arkusza (moduły kończą się ok. x=400 z 594)
+pozostaje - do ew. dalszego wykorzystania (większy WYJŚCIE, adnotacje).

@@ -26,13 +26,18 @@ Szczegóły i log decyzji: `docs/PROJEKT-HEADAMP.md`.
 - `gen.py` — generator schematu KiCad (`headamp.kicad_sch`); **źródło
   prawdy jest w tym pliku, NIE edytować schematu ręcznie w Eeschema**
   (regeneracja go nadpisze). UUID deterministyczne (uuid5) — dwa
-  uruchomienia dają identyczny plik.
+  uruchomienia dają identyczny plik. Layout w ramkach modułów (WEJŚCIE,
+  KANAŁ L, KANAŁ P, WYJŚCIE, SIEĆ, ZASILACZ B+, ŻARZENIE); połączenia
+  między modułami drutami (nie global_label), poza HEAT_A/HEAT_B/ELEV
+  (etykiety lokalne) i GND/PE (symbole power).
 - `symlib.py` — parser symboli KiCad (kopia `riaa/symlib.py`, inna
   ścieżka domyślna biblioteki: Windows).
 - `check.py` — asercje netlisty (wzór `riaa/check.py`): kanał L, kanał
-  P (funkcja `chan()` parametryzowana referencjami), zasilacz.
+  P (funkcja `chan()` parametryzowana referencjami), zasilacz, crossfeed
+  S1, gniazda WE/WY.
 - `sim/amp.cir` — pełny tor (driver + końcówka + OPT), .op / .ac / THD
-- `sim/crossfeed.cir` — sieć crossfeedu S1
+- `sim/crossfeed.cir` — sieć crossfeedu S1 (**źródło prawdy** dla
+  topologii narysowanej w `gen.py` - SW401 + R401-R406 + C401-C404)
 - `ref/se_el84.svg`, `ref/crossfeed.svg` — schematy poglądowe (schemdraw,
   historyczne, przed generatorem)
 
@@ -43,9 +48,14 @@ kicad-cli sch export netlist --format kicadsexpr -o headamp/headamp.net headamp/
 python headamp/check.py
 kicad-cli sch erc --format json --severity-all -o erc.json headamp/headamp.kicad_sch
 ```
-Oczekiwane po Etapie 5b: check.py OK, ERC 0 błędów, ostrzeżenia: wiszące
-IN_L/IN_R/OUT_L/OUT_R (do czasu gniazd/crossfeedu) + multiple_net_names
-ELEV/HEAT_B (zamierzone, jak w common/riaa).
+Oczekiwane po Etapie 6: check.py OK; ERC ostrzeżenia: `missing_unit` ×3
+(U1/U2/U202 - unity grzania nie są rysowane, DECYZJA) + `multiple_net_names`
+ELEV/HEAT_B (zamierzone, jak w common/riaa); **plus 3 błędy
+`missing_power_pin`** (też U1/U2/U202 - piny grzania typu `power_in` w
+bibliotece Valve, KiCad flaguje to jako error nawet gdy unit po prostu
+nie jest umieszczony; nie da się obniżyć bez zmiany `headamp.kicad_pro`,
+poza zakresem generatora). Szczegóły i status decyzji:
+docs/PROJEKT-HEADAMP.md.
 
 ## Uruchomienie symulacji
 ```
