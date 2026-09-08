@@ -52,7 +52,7 @@ LIBPARTS = [
     ('Device', 'L_Iron'), ('Device', 'Lamp_Neon'), ('Device', 'Varistor'),
     ('Device', 'Thermistor_NTC'), ('Connector', 'Screw_Terminal_01x03'),
     ('Regulator_Linear', 'LM317_TO-220'), ('Relay', 'Relay_SPDT'),
-    ('Switch', 'SW_DPST_x2'), ('power', 'Earth_Protective'),
+    ('Switch', 'SW_DPST_x2'),
     # --- Etap B: crossfeed S1 + gniazda WE/WY ---
     ('Connector', 'Conn_Coaxial'), ('Switch', 'SW_DPDT_x2'),
     ('Connector_Audio', 'AudioJack3'),
@@ -159,10 +159,6 @@ def gnd(x, y):
 
 def pwrflag(x, y, rot=0):
     place('#FLG%d' % len(SYMS), 'power:PWR_FLAG', 'PWR_FLAG', x, y, rot=rot)
-
-
-def pe(x, y, rot=0):
-    place('#PE%d' % len(SYMS), 'power:Earth_Protective', 'Earth_Protective', x, y, rot=rot)
 
 
 # =======================================================================
@@ -519,12 +515,14 @@ wire(pin('J1', 2), (43.18, 294.64 + PSU_DY), (43.18, NR), (53.34, NR))
 wire(pin('SW1', 4, unit=2), (77.47, NR), (88.9, NR), (92.71, NR),
      (92.71, pin('T301', 2)[1]), pin('T301', 2))
 junc((77.47, NR)); junc((88.9, NR))
-# PE (flaga i symbol PE rozsuniete, zeby ich Value nie nachodzily na
-# numery pinow J1 ani na siebie nawzajem)
-wire(pin('J1', 3), (41.91, 297.18 + PSU_DY), (41.91, 299.72 + PSU_DY), (41.91, 308.61 + PSU_DY))
-pe(41.91, 308.61 + PSU_DY)
-wire((41.91, 299.72 + PSU_DY), (33.02, 299.72 + PSU_DY), (33.02, 302.26 + PSU_DY)); junc((41.91, 299.72 + PSU_DY))
-pwrflag(33.02, 302.26 + PSU_DY)
+# PE - bez symbolu Earth_Protective i bez PWR_FLAG (DECYZJA 2026-09-08:
+# na schemacie tylko symbole GND). Siec PE = J1 pin 3 (pasywny pin
+# zlaczki) + ground breaker (R309/D310/D311/C309, same piny pasywne) ->
+# brak jakiegokolwiek pinu power_in na tej sieci -> ERC nie wymaga
+# sterownika. Drut prowadzi wprost do lewego konca szyny PE ground
+# breakera (patrz nizej "ground breaker").
+wire(pin('J1', 3), (41.91, 297.18 + PSU_DY), (41.91, 299.72 + PSU_DY), (41.91, 328.93 + PSU_DY))
+wire((41.91, 328.93 + PSU_DY), (43.18, 328.93 + PSU_DY))
 text("PE -> wlasna sruba M4 na chassis", 22.86, 313.69 + PSU_DY, 1.27)
 # warystor + neonowka (kontrolka) przez uzwojenie pierwotne, za wylacznikiem
 place('RV301', 'Device:Varistor', 'S14K275', 77.47, 302.26 + PSU_DY,
@@ -609,7 +607,6 @@ place('C304', 'Device:C_Polarized', '10u/100V', 218.44, 294.64 + PSU_DY,
 wire((210.82, 288.29 + PSU_DY), (218.44, 288.29 + PSU_DY), pin('C304', 1))
 junc((210.82, 288.29 + PSU_DY))
 wire(pin('C304', 2), (218.44, YM))
-label('ELEV', (213.36, 288.29 + PSU_DY))
 
 # --- rozladowanie B+ (K1 + R306), 1:1 z riaa/common ---
 place('K1', 'Relay:Relay_SPDT', '9V', 242.57, 280.67 + PSU_DY,
@@ -619,13 +616,11 @@ place('D305', 'Device:D', '1N4007', 229.87, 280.67 + PSU_DY, rot=270,
 place('R306', 'Device:R', '4k7/10W', 247.65, 294.64 + PSU_DY,
       fields={'ref_at': (240.03, 292.1 + PSU_DY, 0), 'val_at': (245.11, 295.91 + PSU_DY, 0), 'val_just': 'right'})
 wire(pin('K1', 'A1'), (237.49, 270.51 + PSU_DY), (231.14, 270.51 + PSU_DY))
-label('V_RAW', (231.14, 270.51 + PSU_DY), just='right bottom')
 # V_RAW zasilany tylko przez diody mostka (nie "power output" dla ERC) ->
 # jeden PWR_FLAG na cala siec, zeby U301.VI (power input) mial sterownik.
 pwrflag(231.14, 270.51 + PSU_DY - 2.54)
 wire((231.14, 270.51 + PSU_DY), (231.14, 270.51 + PSU_DY - 2.54))
 wire(pin('K1', 'A2'), (237.49, 293.37 + PSU_DY), (231.14, 293.37 + PSU_DY))
-label('ELEV', (231.14, 293.37 + PSU_DY), just='right bottom')
 wire(pin('D305', 1), (229.87, 273.05 + PSU_DY), (237.49, 273.05 + PSU_DY)); junc((237.49, 273.05 + PSU_DY))
 wire(pin('D305', 2), (229.87, 288.29 + PSU_DY), (237.49, 288.29 + PSU_DY)); junc((237.49, 288.29 + PSU_DY))
 wire(pin('K1', 12), (245.11, 267.97 + PSU_DY))
@@ -672,7 +667,6 @@ wire(pin('D306', 1), (299.72, YHP), (317.5, YHP))
 junc((299.72, YHP)); junc((317.5, YHP))
 wire((317.5, YHP), pin('C305', 1))
 wire((317.5, YHP), (337.82, YHP)); junc((337.82, YHP))
-label('V_RAW', (320.04, YHP))
 wire((337.82, YHP), pin('C306', 1))
 wire((337.82, YHP), pin('U301', 3))
 place('R307', 'Device:R', '240R', 364.49, 316.23 + PSU_DY, tol='1%')
@@ -703,7 +697,6 @@ wire(pin('C306', 2), (337.82, YHM))
 for x in (299.72, 317.5, 337.82, 364.49, 372.11, 379.73):
     junc((x, YHM))
 wire((287.02, YHM), (281.94, YHM))
-label('ELEV', (281.94, YHM), just='right bottom')
 # HEAT_A ma sterownik (U301.VO); HEAT_B (powrot zarzenia) - PWR_FLAG tutaj,
 # na koncu drutu wychodzacego z bloku (Etap 6, DECYZJA 2026-09-08: zarniki
 # lamp nie sa rysowane - flaga z Etapu 5a przy grzaniu lamp usunieta razem
@@ -712,6 +705,36 @@ label('ELEV', (281.94, YHM), just='right bottom')
 pwrflag(387.35, YHM + 2.54, rot=180)
 wire((387.35, YHM), (387.35, YHM + 2.54))
 junc((384.81, YHP)); junc((384.81, YHM))
+
+# =======================================================================
+#  ELEV / V_RAW jako druty (DECYZJA 2026-09-08: na schemacie zostaja TYLKO
+#  symbole GND - zadnych innych etykiet lokalnych/globalnych). ELEV: wezel
+#  dzielnika elewacji (R304/R305/C304) -> K1.A2 (odczep ukladu rozladowania)
+#  -> szyna minus zarzenia (dawne "HEAT_B", ta sama siec). V_RAW: K1.A1
+#  (cewka przekaznika) -> wezel wyjscia mostka Schottky zarzenia (juz
+#  polaczony z U301.VI/C305/C306 wyzej). K1 POZOSTAJE w bloku B+ (nie
+#  przenoszony do ramki ZARZENIE) - magistrale ponizej biegna jednym wolnym
+#  korytarzem miedzy blokiem rozladowania a blokiem zarzenia (y=330,2/334,0,
+#  ok. 25 mm ponizej R304/R305/K1, ok. 5-9 mm nad D306), bez przeciec z
+#  korpusami komponentow; przeniesienie K1 wymagaloby przelozenia calego
+#  okablowania +300V bus/rozladowania bez zysku dla czytelnosci (patrz
+#  docs/PROJEKT-HEADAMP.md).
+# =======================================================================
+ELEV_BUS_Y = 330.2
+VRAW_BUS_Y = 334.01
+
+wire((210.82, 288.29 + PSU_DY), (210.82, ELEV_BUS_Y))
+wire((210.82, ELEV_BUS_Y), (231.14, ELEV_BUS_Y))
+wire((231.14, 293.37 + PSU_DY), (231.14, ELEV_BUS_Y))
+junc((231.14, ELEV_BUS_Y))
+wire((231.14, ELEV_BUS_Y), (281.94, ELEV_BUS_Y))
+wire((281.94, ELEV_BUS_Y), (281.94, YHM))
+
+wire((231.14, 270.51 + PSU_DY), (222.25, 270.51 + PSU_DY))
+junc((231.14, 270.51 + PSU_DY))
+wire((222.25, 270.51 + PSU_DY), (222.25, VRAW_BUS_Y))
+wire((222.25, VRAW_BUS_Y), (317.5, VRAW_BUS_Y))
+wire((317.5, VRAW_BUS_Y), (317.5, YHP))
 
 # =======================================================================
 #  ZARNIKI LAMP (Etap "kosmetyka arkusza", 2026-09-08, DECYZJA - wariant a):
@@ -791,7 +814,6 @@ wire((43.18, 328.93 + PSU_DY), (45.72, 328.93 + PSU_DY), (55.88, 328.93 + PSU_DY
 for x in (45.72, 55.88, 66.04):
     junc((x, 321.31 + PSU_DY)); junc((x, 328.93 + PSU_DY))
 gnd(40.64, 321.31 + PSU_DY)
-pe(43.18, 328.93 + PSU_DY, rot=180)
 text("Ground breaker (jedyny styk masy z chassis): 10R przerywa petle masy;", 27.94, 340.36 + PSU_DY, 1.27)
 text("przy usterce diody zwieraja GND do PE i bezpiecznik zadziala.", 27.94, 342.9 + PSU_DY, 1.27)
 

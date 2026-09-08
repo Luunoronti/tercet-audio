@@ -48,6 +48,9 @@ Szczegóły i log decyzji: `docs/PROJEKT-HEADAMP.md`.
   (S1 na wyjściu - odłącza całą galąź krzyżową od wyjść), 3) OFF stara
   topologia (S1 na wejściu, ODRZUCONA - R405/R406+C403/C404 nadal
   obciążają wyjścia, ugięcie basu ~1,4 dB - uzasadnienie zmiany).
+- `ref/headamp.pdf` — eksport aktualnego schematu (`kicad-cli sch export
+  pdf`), regenerowany po każdej zmianie i commitowany razem z
+  `headamp.kicad_sch` (patrz Workflow niżej).
 - `ref/se_el84.svg`, `ref/crossfeed.svg` — schematy poglądowe (schemdraw,
   historyczne, przed generatorem)
 - `layout/layout_top.py` — generator (matplotlib, bez KiCada) propozycji
@@ -69,9 +72,14 @@ python headamp/gen.py
 kicad-cli sch export netlist --format kicadsexpr -o headamp/headamp.net headamp/headamp.kicad_sch
 python headamp/check.py
 kicad-cli sch erc --format json --severity-all -o erc.json headamp/headamp.kicad_sch
+kicad-cli sch export pdf -o headamp/ref/headamp.pdf headamp/headamp.kicad_sch
 ```
-Oczekiwane: check.py OK; **ERC = 0 błędów, 0 ostrzeżeń**. Szczegóły i
-log decyzji: docs/PROJEKT-HEADAMP.md.
+Oczekiwane: check.py OK; **ERC = 0 błędów, 0 ostrzeżeń**. Ostatni krok
+(PDF do `headamp/ref/`) wykonać po każdej zmianie schematu i obejrzeć
+wynik - `headamp/ref/headamp.pdf` jest commitowany razem z
+`headamp.kicad_sch` (nie jest ignorowany, mimo że `.gitignore` wycina
+`headamp/*.pdf` gdzie indziej). Szczegóły i log decyzji:
+docs/PROJEKT-HEADAMP.md.
 
 ## Uruchomienie symulacji
 ```
