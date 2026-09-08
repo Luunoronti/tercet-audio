@@ -53,6 +53,9 @@ LIBPARTS = [
     ('Device', 'Thermistor_NTC'), ('Connector', 'Screw_Terminal_01x03'),
     ('Regulator_Linear', 'LM317_TO-220'), ('Relay', 'Relay_SPDT'),
     ('Switch', 'SW_DPST_x2'), ('power', 'Earth_Protective'),
+    # --- Etap B: crossfeed S1 + gniazda WE/WY ---
+    ('Connector', 'Conn_Coaxial'), ('Switch', 'SW_DPDT_x2'),
+    ('Connector_Audio', 'AudioJack3'),
 ]
 for lib, name in LIBPARTS:
     embed(lib, name)
@@ -302,8 +305,10 @@ def chan(dy, lbl, potunit, u1unit, elref, tref, swref, off, out_flag=False):
     wire((196.85, y(102.87)), (196.85, y(80.01)))
     wire((118.11, y(80.01)), (196.85, y(80.01)), (BUS_X, y(80.01)))
     junc((196.85, y(80.01)))
-    glabel('IN_' + lbl, (39.37, y(133.35)), rot=0, just='left')
-    glabel('OUT_' + lbl, (222.25, y(102.87)), rot=0, just='left')
+    # IN_L/IN_R, OUT_L/OUT_R - Etap B (DECYZJA 2026-09-08): global_label
+    # zastapiony realnym drutem z modulu WEJSCIE/WYJSCIE (patrz nizej,
+    # sekcje po chan()). Punkty (39.37, y(133.35)) i (222.25, y(102.87))
+    # zostaja - tylko koncem drutu, bez wlasnej etykiety/symbolu tutaj.
 
     if out_flag:
         # PWR_FLAG na powrocie wtornym OPT do GND (jak w b7d6cc9) - tylko
@@ -317,6 +322,102 @@ def chan(dy, lbl, potunit, u1unit, elref, tref, swref, off, out_flag=False):
 # zglasza "endpoint_off_grid" na kazdym przesunietym drucie/pinie.
 chan(dy=0, lbl='L', potunit=1, u1unit=1, elref='U2', tref='T1', swref='SW2', off=0, out_flag=True)
 chan(dy=105.41, lbl='R', potunit=2, u1unit=2, elref='U202', tref='T201', swref='SW202', off=200)
+
+# =======================================================================
+#  WEJSCIE (Etap B, DECYZJA 2026-09-08): gniazda RCA J401/J402 + crossfeed
+#  S1 (SW401, DPDT). Topologia i wartosci - ZRODLO PRAWDY: sim/crossfeed.cir
+#  (nie opis w PROJEKT-HEADAMP.md - patrz tam rozbieznosc/aktualizacja).
+#  Cir modeluje "krzyzowy" (S1 zalaczony): tor prosty R401||C401 (kanal L),
+#  R402||C402 (kanal P) sa ZAWSZE wpiete miedzy gniazdo a RV1 (bypass
+#  przelacznika - w cir to l1->lout, r1->rout, zawsze obecne). SW401
+#  przelacza TYLKO doplyw sygnalu do galezi krzyzowej: pole 1 (piny 1/2)
+#  IN_L -> R403; pole 2 (piny 4/5) IN_R -> R404. W pozycji "prosty" galaz
+#  krzyzowa jest odlaczona od gniazda (trzeci pin kazdego pola - NC).
+#  Krzyzowa: R403(2k2) -> mL -> C403(220n) do masy, -> R405(3k3) -> outR
+#  (przeciwny kanal); mirror: R404/mR/C404/R406 -> outL.
+# =======================================================================
+place('J401', 'Connector:Conn_Coaxial', 'IN L (RCA)', 26.67, 30.48, mirror='y')
+place('J402', 'Connector:Conn_Coaxial', 'IN R (RCA)', 26.67, 53.34, mirror='y')
+place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 33.02, unit=1)
+place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 45.72, unit=2)
+place('R401', 'Device:R', '1k', 154.94, 26.67, rot=90)
+place('C401', 'Device:C', '470n', 165.1, 26.67, rot=90)
+place('R402', 'Device:R', '1k', 154.94, 60.96, rot=90)
+place('C402', 'Device:C', '470n', 165.1, 60.96, rot=90)
+place('R403', 'Device:R', '2k2', 105.41, 26.67, rot=90)
+place('C403', 'Device:C', '220n', 116.84, 33.02, rot=90)
+place('R405', 'Device:R', '3k3', 130.81, 33.02)
+place('R404', 'Device:R', '2k2', 105.41, 60.96, rot=90)
+place('C404', 'Device:C', '220n', 116.84, 45.72, rot=90)
+place('R406', 'Device:R', '3k3', 130.81, 45.72)
+
+# --- wejscia (jack -> bus IN_L/IN_R, x=45 - zasila zarowno tor prosty
+#     R401/C401 (R402/C402) jak i wspolny (COM) SW401) ---
+wire(pin('J401', 1), (45.72, 30.48))
+wire((45.72, 30.48), (45.72, 26.67)); wire((45.72, 26.67), pin('R401', 1))
+wire((45.72, 30.48), (45.72, 33.02)); wire((45.72, 33.02), pin('SW401', 2, unit=1))
+junc((45.72, 30.48))
+wire(pin('J402', 1), (45.72, 53.34))
+wire((45.72, 53.34), (45.72, 60.96)); wire((45.72, 60.96), pin('R402', 1))
+wire((45.72, 53.34), (45.72, 45.72)); wire((45.72, 45.72), pin('SW401', 5, unit=2))
+junc((45.72, 53.34))
+gnd(*pin('J401', 2))
+gnd(*pin('J402', 2))
+
+# --- SW401 przelacza doplyw do galezi krzyzowej (trzeci pin kazdego pola -
+#     NC = "prosty", galaz plywajaca) ---
+wire(pin('SW401', 1, unit=1), (95.25, 26.67)); wire((95.25, 26.67), pin('R403', 1))
+noconn(pin('SW401', 3, unit=1))
+wire(pin('SW401', 4, unit=2), (99.06, 43.18)); wire((99.06, 43.18), (99.06, 60.96))
+wire((99.06, 60.96), pin('R404', 1))
+noconn(pin('SW401', 6, unit=2))
+
+# --- tor prosty (ZAWSZE wpiety, bypass przelacznika): R401||C401 (kanal L),
+#     R402||C402 (kanal P) miedzy wezlem wejsciowym a wezlem "out" ---
+wire(pin('R401', 1), pin('C401', 1))                # inL strona R401/C401
+wire(pin('R401', 2), pin('C401', 2))                # outL strona
+wire(pin('R402', 1), pin('C402', 1))                # inR strona
+wire(pin('R402', 2), pin('C402', 2))                # outR strona
+
+# --- magistrale wyjsciowe outL (x=175) / outR (x=185), zbieraja tez galaz
+#     krzyzowa przeciwnego kanalu (R406->outL, R405->outR) ---
+wire(pin('C401', 2), (175.26, 26.67))
+wire((175.26, 21.59), (175.26, 49.53)); junc((175.26, 26.67))
+wire((175.26, 21.59), (39.37, 21.59)); wire((39.37, 21.59), (39.37, 133.35))
+wire(pin('C402', 2), (185.42, 60.96))
+wire((185.42, 36.83), (185.42, 63.5)); junc((185.42, 60.96))
+wire((185.42, 63.5), (20.32, 63.5))
+wire((20.32, 63.5), (20.32, 238.76)); wire((20.32, 238.76), (39.37, 238.76))
+
+# --- galaz krzyzowa L -> R: R403(2k2) SW->mL, C403(220n) mL->GND,
+#     R405(3k3) mL->outR ---
+wire(pin('R403', 2), (113.03, 26.67)); wire((113.03, 26.67), pin('C403', 1))
+junc(pin('C403', 1))
+wire(pin('C403', 2), (120.65, 33.02)); gnd(120.65, 33.02)
+wire(pin('C403', 1), (130.81, 33.02)); wire((130.81, 33.02), pin('R405', 1))
+wire(pin('R405', 2), (185.42, 36.83))
+
+# --- galaz krzyzowa R -> L: R404(2k2) SW->mR, C404(220n) mR->GND,
+#     R406(3k3) mR->outL ---
+wire(pin('R404', 2), (113.03, 60.96)); wire((113.03, 60.96), pin('C404', 1))
+junc(pin('C404', 1))
+wire(pin('C404', 2), (120.65, 45.72)); gnd(120.65, 45.72)
+wire(pin('C404', 1), (130.81, 45.72)); wire((130.81, 45.72), pin('R406', 1))
+wire(pin('R406', 2), (175.26, 49.53))
+
+# =======================================================================
+#  WYJSCIE (Etap B): jack sluchawkowy 6,3mm TRS J403 (DT 770 M, 80R).
+#  T=L (T1 wtorne), R=P (T201 wtorne), S=GND (wspolna, jak wtorne OPT).
+# =======================================================================
+place('J403', 'Connector_Audio:AudioJack3', 'jack 6,3mm TRS (DT 770 M 80R)', 299.72, 165.1)
+wire((222.25, 102.87), (285.75, 102.87), (285.75, pin('J403', 'T')[1]))
+wire((285.75, pin('J403', 'T')[1]), pin('J403', 'T'))
+junc((285.75, 102.87))
+wire((222.25, 208.28), (280.67, 208.28), (280.67, pin('J403', 'R')[1]))
+wire((280.67, pin('J403', 'R')[1]), pin('J403', 'R'))
+junc((280.67, 208.28))
+wire(pin('J403', 'S'), (304.8, 149.86)); gnd(304.8, 149.86)
+text("jack 6,3 mm TRS, DT 770 M 80R", 262.0, 155.0, 1.27)
 
 # --- zarniki lamp NIE SA RYSOWANE (DECYZJA 2026-09-08) - unity grzania
 #     ECC82 (U1 unit3), EL84 audio L (U2 unit2), EL84 audio P (U202 unit2)

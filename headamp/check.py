@@ -197,6 +197,33 @@ diff(('J1', '2'), ('J1', '3'))            # N != PE
 diff(('J1', '1'), ('J1', '3'))            # L != PE
 diff(('J1', '3'), ('R1', '2'))            # PE != GND (ground breaker rozdziela)
 
+# =======================================================================
+#  CROSSFEED S1 + gniazda WE/WY (Etap B, DECYZJA 2026-09-08) - topologia
+#  wg sim/crossfeed.cir (ZRODLO PRAWDY). Tor prosty R401/C401 (R402/C402)
+#  ZAWSZE wpiety miedzy gniazdo a RV1 (bypass przelacznika); SW401
+#  przelacza TYLKO doplyw sygnalu do galezi krzyzowej. Pozycji
+#  przelacznika (prosty/krzyzowy) NIE DA SIE zweryfikowac statyczna
+#  netlista - schemat rysuje jedna (zalaczona) pozycje, jak w cir.
+# =======================================================================
+same(('J401', '1'), ('SW401', '2'), ('R401', '1'), ('C401', '1'))  # gniazdo L -> SW401 wejscie -> tor prosty (in)
+same(('R401', '2'), ('C401', '2'), ('RV1', '1'), ('R406', '2'))    # tor prosty (out) -> RV1 kanalu L
+same(('J402', '1'), ('SW401', '5'), ('R402', '1'), ('C402', '1'))  # gniazdo P -> SW401 wejscie -> tor prosty (in)
+same(('R402', '2'), ('C402', '2'), ('RV1', '4'), ('R405', '2'))    # tor prosty (out) -> RV1 kanalu P
+
+same(('SW401', '1'), ('R403', '1'))                                # wyjscie SW401 unit1 (gorny pin) -> galaz krzyzowa L->P
+same(('R403', '2'), ('C403', '1'), ('R405', '1'))                  # mL: R krzyzowy + C do masy
+same(('SW401', '4'), ('R404', '1'))                                # wyjscie SW401 unit2 (gorny pin) -> galaz krzyzowa P->L
+same(('R404', '2'), ('C404', '1'), ('R406', '1'))                  # mR: R krzyzowy + C do masy
+same(('C403', '2'), ('R1', '2'))                                   # C403 do masy
+same(('C404', '2'), ('R1', '2'))                                   # C404 do masy
+
+# diff(('RV1','1'),('RV1','4')) juz sprawdzone wyzej (IN_L != IN_R)
+
+# gniazda WY (J403 TRS 6,3mm): T=kanal L, R=kanal P, S=GND
+same(('T1', '4'), ('J403', 'T'))
+same(('T201', '4'), ('J403', 'R'))
+same(('J403', 'S'), ('R1', '2'))
+
 print('Nety:', len(nets))
 if fails:
     print('FAILURES:')
