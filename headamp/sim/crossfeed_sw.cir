@@ -1,0 +1,92 @@
+* Crossfeed S1 - polozenie przelacznika na schemacie (Etap 2026-09-08, DECYZJA)
+* Trzy warianty w jednym pliku (kazdy zakonczony .end, ngspice batch liczy je
+* po kolei) - uzasadnienie decyzji "S1 po stronie wyjsciowej galezi krzyzowej":
+*   1) ON            - polozenie "krzyzowy" zalaczone (identyczne elektrycznie
+*                       w obu topologiach - patrz crossfeed.cir, powtorzone tu
+*                       dla kompletu/porownania).
+*   2) OFF (nowa)     - S1 po stronie WYJSCIOWEJ (DECYZJA): galaz krzyzowa
+*                       (R23-25/R24-26) odlaczona calkowicie od wyjsc lout/rout.
+*                       Tor prosty widzi TYLKO R21||C21 (R22||C22) + RpotL/R.
+*   3) OFF (stara)    - S1 po stronie WEJSCIOWEJ (odrzucone): przelacznik
+*                       odcina tylko dophyw z l1/r1 do R23/R24, ale R25+C23
+*                       (R26+C24) NADAL wisza na wyjsciach (od R23/R24, ktore
+*                       sa teraz martwym koncem, i tak nie plynie przez nie
+*                       prad) - to obciazenie wyjsc pokazuje ugiecie basu,
+*                       ktore bylo powodem przeniesienia S1 na wyjscie.
+*
+* Wszystkie trzy warianty licza AC 20Hz-20kHz, direct=db(v(lout)),
+* cross=db(v(rout)) (sygnal testowy tylko w kanale L, jak w crossfeed.cir).
+
+*** 1) ON - krzyzowy zalaczony (jak crossfeed.cir) ***
+VL lin 0 DC 0 AC 1
+VR rin 0 DC 0 AC 0
+RsrcL lin l1 100
+RsrcR rin r1 100
+R21 l1 lout 1k
+C21 l1 lout 470n
+R22 r1 rout 1k
+C22 r1 rout 470n
+R23 l1 ml 2.2k
+C23 ml 0 220n
+R25 ml rout 3.3k
+R24 r1 mr 2.2k
+C24 mr 0 220n
+R26 mr lout 3.3k
+RpotL lout 0 50k
+RpotR rout 0 50k
+.control
+ac dec 40 20 20k
+let direct = db(v(lout))
+let cross  = db(v(rout))
+wrdata xf_on.txt direct cross
+.endc
+.end
+
+*** 2) OFF - S1 po stronie wyjsciowej (DECYZJA, nowa topologia) ***
+* Galaz krzyzowa w ogole nie dotyka wyjsc - pomijamy R23/C23/R25/R24/C24/R26
+* (przy otwartym S1 sa odlaczone od lout/rout; strona wejsciowa galezi jest
+* bez znaczenia dla pomiaru na wyjsciach).
+VL lin 0 DC 0 AC 1
+VR rin 0 DC 0 AC 0
+RsrcL lin l1 100
+RsrcR rin r1 100
+R21 l1 lout 1k
+C21 l1 lout 470n
+R22 r1 rout 1k
+C22 r1 rout 470n
+RpotL lout 0 50k
+RpotR rout 0 50k
+.control
+ac dec 40 20 20k
+let direct = db(v(lout))
+let cross  = db(v(rout))
+wrdata xf_off_new.txt direct cross
+.endc
+.end
+
+*** 3) OFF - S1 po stronie wejsciowej (ODRZUCONE, stara topologia) ***
+* S1 odcina tylko doplyw z l1 (r1) do R23 (R24) - R23/R24 staja sie martwym
+* koncem (bez wplywu, brak przeplywu pradu). R25+C23 (R26+C24) NADAL licza sie
+* jako obciazenie wyjscia rout (lout): z rout przez R25(3k3) do wezla ml, z ml
+* przez C23(220n) do masy - to samo mirror dla R26/C24/lout.
+VL lin 0 DC 0 AC 1
+VR rin 0 DC 0 AC 0
+RsrcL lin l1 100
+RsrcR rin r1 100
+R21 l1 lout 1k
+C21 l1 lout 470n
+R22 r1 rout 1k
+C22 r1 rout 470n
+R25 rout ml 3.3k
+C23 ml 0 220n
+R26 lout mr 3.3k
+C24 mr 0 220n
+RpotL lout 0 50k
+RpotR rout 0 50k
+.control
+ac dec 40 20 20k
+let direct = db(v(lout))
+let cross  = db(v(rout))
+wrdata xf_off_old.txt direct cross
+.endc
+.end

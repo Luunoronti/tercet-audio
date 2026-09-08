@@ -203,25 +203,32 @@ diff(('J1', '1'), ('J1', '3'))            # L != PE
 diff(('J1', '3'), ('R1', '2'))            # PE != GND (ground breaker rozdziela)
 
 # =======================================================================
-#  CROSSFEED S1 + gniazda WE/WY (Etap B, DECYZJA 2026-09-08) - topologia
-#  wg sim/crossfeed.cir (ZRODLO PRAWDY). Tor prosty R401/C401 (R402/C402)
-#  ZAWSZE wpiety miedzy gniazdo a RV1 (bypass przelacznika); SW401
-#  przelacza TYLKO doplyw sygnalu do galezi krzyzowej. Pozycji
-#  przelacznika (prosty/krzyzowy) NIE DA SIE zweryfikowac statyczna
-#  netlista - schemat rysuje jedna (zalaczona) pozycje, jak w cir.
+#  CROSSFEED S1 + gniazda WE/WY (DECYZJA 2026-09-08, S1 przeniesiony na
+#  wyjscie galezi krzyzowej) - topologia wg sim/crossfeed_sw.cir (ZRODLO
+#  PRAWDY). Tor prosty R401/C401 (R402/C402) ZAWSZE wpiety bezposrednio
+#  miedzy gniazdo a RV1 (bez udzialu przelacznika - jak wczesniej).
+#  Galaz krzyzowa jest teraz zasilana z gniazda WPROST (bez przelacznika):
+#  J401->R403->mL->C403->R405, i DOPIERO na koncu (po R405) wchodzi SW401
+#  sekcja A (styk 1, NC=3) -> COM (pin 2) -> wyjscie kanalu P (RV1.4).
+#  Mirror: J402->R404->mR->C404->R406->SW401 sekcja B (styk 4, NC=6) ->
+#  COM (pin 5) -> wyjscie kanalu L (RV1.1). Pozycji przelacznika
+#  (prosty/krzyzowy) NIE DA SIE zweryfikowac statyczna netlista - schemat
+#  rysuje jedna (zalaczona) pozycje, jak w cir.
 # =======================================================================
-same(('J401', '1'), ('SW401', '2'), ('R401', '1'), ('C401', '1'))  # gniazdo L -> SW401 wejscie -> tor prosty (in)
-same(('R401', '2'), ('C401', '2'), ('RV1', '1'), ('R406', '2'))    # tor prosty (out) -> RV1 kanalu L
-same(('J402', '1'), ('SW401', '5'), ('R402', '1'), ('C402', '1'))  # gniazdo P -> SW401 wejscie -> tor prosty (in)
-same(('R402', '2'), ('C402', '2'), ('RV1', '4'), ('R405', '2'))    # tor prosty (out) -> RV1 kanalu P
+same(('J401', '1'), ('R401', '1'), ('R403', '1'), ('C401', '1'))   # gniazdo L -> tor prosty (in) + galaz krzyzowa (wprost)
+same(('R401', '2'), ('C401', '2'), ('RV1', '1'), ('SW401', '5'))   # tor prosty (out) + SW401 COM sekcji B -> RV1 kanalu L
+same(('J402', '1'), ('R402', '1'), ('R404', '1'), ('C402', '1'))   # gniazdo P -> tor prosty (in) + galaz krzyzowa (wprost)
+same(('R402', '2'), ('C402', '2'), ('RV1', '4'), ('SW401', '2'))   # tor prosty (out) + SW401 COM sekcji A -> RV1 kanalu P
 
-same(('SW401', '1'), ('R403', '1'))                                # wyjscie SW401 unit1 (gorny pin) -> galaz krzyzowa L->P
 same(('R403', '2'), ('C403', '1'), ('R405', '1'))                  # mL: R krzyzowy + C do masy
-same(('SW401', '4'), ('R404', '1'))                                # wyjscie SW401 unit2 (gorny pin) -> galaz krzyzowa P->L
+same(('R405', '2'), ('SW401', '1'))                                # R405 -> SW401 styk A (wejscie sekcji A)
 same(('R404', '2'), ('C404', '1'), ('R406', '1'))                  # mR: R krzyzowy + C do masy
+same(('R406', '2'), ('SW401', '4'))                                # R406 -> SW401 styk B (wejscie sekcji B)
 same(('C403', '2'), ('R1', '2'))                                   # C403 do masy
 same(('C404', '2'), ('R1', '2'))                                   # C404 do masy
 
+diff(('SW401', '1'), ('SW401', '2'))          # styk A != COM A (S1 rozwiera ta sciezke w pozycji "prosty")
+diff(('SW401', '4'), ('SW401', '5'))          # styk B != COM B
 # diff(('RV1','1'),('RV1','4')) juz sprawdzone wyzej (IN_L != IN_R)
 
 # gniazda WY (J403 TRS 6,3mm): T=kanal L, R=kanal P, S=GND

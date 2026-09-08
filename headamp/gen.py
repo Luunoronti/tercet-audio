@@ -324,17 +324,35 @@ chan(dy=0, lbl='L', potunit=1, u1unit=1, elref='U2', tref='T1', swref='SW2', off
 chan(dy=105.41, lbl='R', potunit=2, u1unit=2, elref='U202', tref='T201', swref='SW202', off=200)
 
 # =======================================================================
-#  WEJSCIE (Etap B, DECYZJA 2026-09-08): gniazda RCA J401/J402 + crossfeed
-#  S1 (SW401, DPDT). Topologia i wartosci - ZRODLO PRAWDY: sim/crossfeed.cir
-#  (nie opis w PROJEKT-HEADAMP.md - patrz tam rozbieznosc/aktualizacja).
-#  Cir modeluje "krzyzowy" (S1 zalaczony): tor prosty R401||C401 (kanal L),
-#  R402||C402 (kanal P) sa ZAWSZE wpiete miedzy gniazdo a RV1 (bypass
-#  przelacznika - w cir to l1->lout, r1->rout, zawsze obecne). SW401
-#  przelacza TYLKO doplyw sygnalu do galezi krzyzowej: pole 1 (piny 1/2)
-#  IN_L -> R403; pole 2 (piny 4/5) IN_R -> R404. W pozycji "prosty" galaz
-#  krzyzowa jest odlaczona od gniazda (trzeci pin kazdego pola - NC).
-#  Krzyzowa: R403(2k2) -> mL -> C403(220n) do masy, -> R405(3k3) -> outR
-#  (przeciwny kanal); mirror: R404/mR/C404/R406 -> outL.
+#  WEJSCIE (DECYZJA 2026-09-08, S1 przeniesiony na wyjscie galezi krzyzowej):
+#  gniazda RCA J401/J402 + crossfeed S1 (SW401, DPDT). Topologia i wartosci -
+#  ZRODLO PRAWDY: sim/crossfeed_sw.cir (nie opis w PROJEKT-HEADAMP.md sprzed
+#  tej daty - patrz tam sekcja "Przelaczniki charakteru" / "Decyzje").
+#  Tor prosty R401||C401 (kanal L), R402||C402 (kanal P) ZAWSZE wpiety
+#  bezposrednio miedzy gniazdo a RV1 (bez zadnego udzialu przelacznika).
+#  Galaz krzyzowa jest teraz zasilana z gniazda WPROST (bez przelacznika):
+#  J401 -> R403(2k2) -> mL (C403 220n do masy) -> R405(3k3) -> dopiero TU
+#  wchodzi SW401 sekcja A (styk 1/NC 3) -> wspolny (COM, pin 2) -> wyjscie
+#  kanalu P (RV1.4). Mirror: J402 -> R404 -> mR -> C404 -> R406 -> SW401
+#  sekcja B (styk 4/NC 6) -> COM (pin 5) -> wyjscie kanalu L (RV1.1).
+#  Powod zmiany (przeniesienie S1 z wejscia na wyjscie galezi krzyzowej):
+#  przy starej topologii (przelacznik na wejsciu galezi) R405/C403 (R406/C404)
+#  caly czas obciazaly wyjscia toru prostego nawet przy S1 "OFF" (martwy
+#  koniec R403/R404 nie odlaczal R405/R406 od wyjscia) - ugiecie basu
+#  ~1,4 dB (symulacja sim/crossfeed_sw.cir, wariant "OFF stara topologia").
+#  Po przeniesieniu S1 na wyjscie, "OFF" odlacza cala galaz krzyzowa od
+#  wyjsc - odchylka od plaskiej ~0,17 dB (20 Hz-20 kHz), tylko strata
+#  wtraceniowa R401/RpotL (patrz sim/crossfeed_sw.cir, wariant "OFF nowa").
+#  SW401 zamontowany mirror='y' (COM z lewej na prawa strone symbolu),
+#  zeby geometrycznie: styk (wejscie z R405/R406, od strony galezi
+#  krzyzowej) byl z LEWEJ (bliżej R405/R406), a COM (wyjscie, do magistrali
+#  RV1) z PRAWEJ (bliżej wyjsc) - fizycznie odzwierciedla kierunek sygnalu.
+#  Layout "X" (czytelnosc, bez przeciecia drutow): oba tory proste poziomo
+#  (L u gory y=26,67; P u dolu y=60,96); galaz L->P schodzi w dol PO PRAWEJ
+#  (konczy na magistrali outR x=185,42, dalej od osi), galaz P->L wchodzi w
+#  gore PO LEWEJ (konczy na magistrali outL x=175,26, blizej osi) - dwie
+#  przeciwbiezne linie miedzy rzedami L/P daja wrazenie "X" bez faktycznego
+#  krzyzowania drutow (i bez junction w miejscu ktoregokolwiek przeciecia).
 # =======================================================================
 def _rv(x, y):
     """Pola ref/value dla R pionowego (rot=90) - stos wzdluz Y jak w chan()."""
@@ -350,9 +368,14 @@ place('J401', 'Connector:Conn_Coaxial', 'IN L (RCA)', 26.67, 30.48, mirror='y',
       fields={'ref_at': (16.51, 27.94, 0), 'val_at': (16.51, 33.02, 0)})
 place('J402', 'Connector:Conn_Coaxial', 'IN R (RCA)', 26.67, 53.34, mirror='y',
       fields={'ref_at': (16.51, 50.8, 0), 'val_at': (16.51, 55.88, 0)})
-place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 33.02, unit=1,
-      fields={'ref_at': (74.93, 24.13, 0), 'val_at': (74.93, 40.64, 0)})
-place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 90.17, 45.72, unit=2)
+# SW401 - obie sekcje obok siebie (sam x), tuz przed wyjsciami (miedzy R405/
+# R406 x=130,81 a magistralami wyjsciowymi x=175,26/185,42). mirror='y':
+# styk (pin1/pin4) po LEWEJ (od R405/R406), COM (pin2/pin5) po PRAWEJ
+# (do magistrali RV1) - patrz komentarz wyzej.
+place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 149.86, 39.37, unit=1, mirror='y',
+      fields={'ref_at': (156.21, 32.51, 0), 'val_at': (156.21, 35.05, 0)})
+place('SW401', 'Switch:SW_DPDT_x2', 'S1 crossfeed', 149.86, 52.07, unit=2, mirror='y',
+      fields={'ref_at': (156.21, 44.45, 0), 'val_at': (156.21, 46.99, 0)})
 place('R401', 'Device:R', '1k', 154.94, 26.67, rot=90, fields=_rv(154.94, 26.67))
 place('C401', 'Device:C', '470n', 165.1, 26.67, rot=90, fields=_cv(165.1, 26.67))
 place('R402', 'Device:R', '1k', 154.94, 60.96, rot=90, fields=_rv(154.94, 60.96))
@@ -366,36 +389,36 @@ place('C404', 'Device:C', '220n', 116.84, 45.72, rot=90, fields=_cv(116.84, 45.7
 place('R406', 'Device:R', '3k3', 130.81, 45.72,
       fields={'ref_at': (132.842, 45.72, 90), 'val_at': (130.81, 45.72, 90)})
 
-# --- wejscia (jack -> bus IN_L/IN_R, x=45 - zasila zarowno tor prosty
-#     R401/C401 (R402/C402) jak i wspolny (COM) SW401) ---
+# --- wejscia (jack -> bezposrednio do galezi krzyzowej R403/R404 ORAZ,
+#     odgalezieniem nad/pod nia, do toru prostego R401/R402 - bez udzialu
+#     przelacznika po tej stronie) ---
 wire(pin('J401', 1), (45.72, 30.48))
-wire((45.72, 30.48), (45.72, 26.67)); wire((45.72, 26.67), pin('R401', 1))
-wire((45.72, 30.48), (45.72, 33.02)); wire((45.72, 33.02), pin('SW401', 2, unit=1))
-junc((45.72, 30.48))
+wire((45.72, 30.48), (45.72, 26.67))
+wire((45.72, 26.67), pin('R403', 1))                # -> galaz krzyzowa (wprost)
+wire((45.72, 26.67), (45.72, 22.86))
+wire((45.72, 22.86), (151.13, 22.86))
+wire((151.13, 22.86), pin('R401', 1))               # -> tor prosty (nad galezia krzyzowa)
+junc((45.72, 26.67))
 wire(pin('J402', 1), (45.72, 53.34))
-wire((45.72, 53.34), (45.72, 60.96)); wire((45.72, 60.96), pin('R402', 1))
-wire((45.72, 53.34), (45.72, 45.72)); wire((45.72, 45.72), pin('SW401', 5, unit=2))
-junc((45.72, 53.34))
+wire((45.72, 53.34), (45.72, 60.96))
+wire((45.72, 60.96), pin('R404', 1))                # -> galaz krzyzowa (wprost)
+wire((45.72, 60.96), (45.72, 64.77))
+wire((45.72, 64.77), (151.13, 64.77))
+wire((151.13, 64.77), pin('R402', 1))               # -> tor prosty (pod galezia krzyzowa)
+junc((45.72, 60.96))
 gnd(*pin('J401', 2))
 gnd(*pin('J402', 2))
 
-# --- SW401 przelacza doplyw do galezi krzyzowej (trzeci pin kazdego pola -
-#     NC = "prosty", galaz plywajaca) ---
-wire(pin('SW401', 1, unit=1), (95.25, 26.67)); wire((95.25, 26.67), pin('R403', 1))
-noconn(pin('SW401', 3, unit=1))
-wire(pin('SW401', 4, unit=2), (99.06, 43.18)); wire((99.06, 43.18), (99.06, 60.96))
-wire((99.06, 60.96), pin('R404', 1))
-noconn(pin('SW401', 6, unit=2))
-
-# --- tor prosty (ZAWSZE wpiety, bypass przelacznika): R401||C401 (kanal L),
-#     R402||C402 (kanal P) miedzy wezlem wejsciowym a wezlem "out" ---
+# --- tor prosty (ZAWSZE wpiety): R401||C401 (kanal L), R402||C402 (kanal P)
+#     miedzy wezlem wejsciowym a wezlem "out" ---
 wire(pin('R401', 1), pin('C401', 1))                # inL strona R401/C401
 wire(pin('R401', 2), pin('C401', 2))                # outL strona
 wire(pin('R402', 1), pin('C402', 1))                # inR strona
 wire(pin('R402', 2), pin('C402', 2))                # outR strona
 
 # --- magistrale wyjsciowe outL (x=175) / outR (x=185), zbieraja tez galaz
-#     krzyzowa przeciwnego kanalu (R406->outL, R405->outR) ---
+#     krzyzowa przeciwnego kanalu POPRZEZ SW401 (COM sekcji B->outL,
+#     COM sekcji A->outR) ---
 wire(pin('C401', 2), (175.26, 26.67))
 wire((175.26, 21.59), (175.26, 49.53)); junc((175.26, 26.67))
 wire((175.26, 21.59), (39.37, 21.59)); wire((39.37, 21.59), (39.37, 133.35))
@@ -404,21 +427,32 @@ wire((185.42, 36.83), (185.42, 63.5)); junc((185.42, 60.96))
 wire((185.42, 63.5), (20.32, 63.5))
 wire((20.32, 63.5), (20.32, 238.76)); wire((20.32, 238.76), (39.37, 238.76))
 
-# --- galaz krzyzowa L -> R: R403(2k2) SW->mL, C403(220n) mL->GND,
-#     R405(3k3) mL->outR ---
+# --- galaz krzyzowa L -> P: R403(2k2) wprost z gniazda -> mL, C403(220n)
+#     mL->GND, R405(3k3) mL -> SW401 sekcja A (styk 1) -> COM (pin 2) ->
+#     magistrala outR (kanal P) ---
 wire(pin('R403', 2), (113.03, 26.67)); wire((113.03, 26.67), pin('C403', 1))
 junc(pin('C403', 1))
 wire(pin('C403', 2), (120.65, 33.02)); gnd(120.65, 33.02)
 wire(pin('C403', 1), (130.81, 33.02)); wire((130.81, 33.02), pin('R405', 1))
-wire(pin('R405', 2), (185.42, 36.83))
+wire(pin('R405', 2), pin('SW401', 1, unit=1))       # R405 -> styk A (obaj na y=36,83)
+noconn(pin('SW401', 3, unit=1))                     # NC = pozycja "prosty" (galaz plywajaca)
+wire(pin('SW401', 2, unit=1), (185.42, 39.37))
+wire((185.42, 39.37), (185.42, 36.83))              # COM A -> magistrala outR
 
-# --- galaz krzyzowa R -> L: R404(2k2) SW->mR, C404(220n) mR->GND,
-#     R406(3k3) mR->outL ---
+# --- galaz krzyzowa P -> L: R404(2k2) wprost z gniazda -> mR, C404(220n)
+#     mR->GND, R406(3k3) mR -> SW401 sekcja B (styk 4) -> COM (pin 5) ->
+#     magistrala outL (kanal L) ---
 wire(pin('R404', 2), (113.03, 60.96)); wire((113.03, 60.96), pin('C404', 1))
 junc(pin('C404', 1))
 wire(pin('C404', 2), (120.65, 45.72)); gnd(120.65, 45.72)
 wire(pin('C404', 1), (130.81, 45.72)); wire((130.81, 45.72), pin('R406', 1))
-wire(pin('R406', 2), (175.26, 49.53))
+wire(pin('R406', 2), pin('SW401', 4, unit=2))       # R406 -> styk B (obaj na y=49,53)
+noconn(pin('SW401', 6, unit=2))                     # NC = pozycja "prosty" (galaz plywajaca)
+wire(pin('SW401', 5, unit=2), (175.26, 52.07))
+wire((175.26, 52.07), (175.26, 49.53))              # COM B -> magistrala outL
+
+text("S1 crossfeed: ON = przesluch -14 dB w basie (<700 Hz), OFF = tor prosty",
+     92, 20, 1.27)
 
 # =======================================================================
 #  WYJSCIE (Etap B): jack sluchawkowy 6,3mm TRS J403 (DT 770 M, 80R).
