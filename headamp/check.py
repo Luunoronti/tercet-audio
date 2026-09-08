@@ -121,12 +121,17 @@ chan(rn_id(0), 'L', ('1', '2', '3'), ('6', '7', '8'), 'U2', 'T1', 'SW2', 0)
 chan(rn_id(200), 'P', ('4', '5', '6'), ('1', '2', '3'), 'U202', 'T201', 'SW202', 200)
 
 # =======================================================================
-#  zarzenia (grzanie) - DECYZJA 2026-09-08: zarniki lamp NIE SA RYSOWANE
-#  (unity grzania ECC82/EL84 usuniete ze schematu razem z drutami do nich).
-#  Netlista wiec juz NIE ZAWIERA U1.4/U1.5/U1.9/U2.4/U2.5/U202.4/U202.5 -
-#  asercje po stronie lamp usuniete stad; zostaja tylko po stronie
-#  zasilacza (sekcja "ZASILACZ" nizej, HEAT_A/HEAT_B na U301/R307/R308).
+#  zarzenia (grzanie) - DECYZJA 2026-09-08 (wariant a, "kosmetyka arkusza"):
+#  zarniki lamp PRZYWROCONE, rysowane drutami wewnatrz ramki ZARZENIE.
+#  ECC82 (U1 unit3): piny 4 i 5 (oba F1) -> +6,3V (U301.VO); pin 9 (F2) ->
+#  minus zarzenia (ta sama siec co ELEV). EL84 (U2, U202, unit2): pin 4
+#  (F1) -> +6,3V; pin 5 (F2) -> minus.
 # =======================================================================
+same(('U301', '2'), ('U1', '4'), ('U1', '5'), ('U2', '4'), ('U202', '4'))          # +6,3V (HEAT_A)
+same(('R308', '2'), ('C307', '2'), ('C308', '2'),
+     ('U1', '9'), ('U2', '5'), ('U202', '5'), ('R304', '2'))                       # minus zarzenia = ELEV
+diff(('U301', '2'), ('U1', '9'))            # +6,3V != minus
+diff(('U1', '4'), ('R1', '2'))              # HEAT != GND
 
 # =======================================================================
 #  diff() - sieci ktore MUSZA byc rozne (dodatkowe, poza chan())

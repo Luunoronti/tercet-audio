@@ -450,21 +450,23 @@ wire(pin('J403', 'S'), (304.8, 175.26)); gnd(304.8, 175.26)
 #  kanal, mniejszy prad, nie potrzeba oddzielnych filtrow).
 # =======================================================================
 
-# PSU_DY - przesuniecie calego bloku zasilacza w Y (Etap 5b: +76,2mm, miejsce
-# na rzad zarnikow lamp). Rzad zarnikow usuniety w Etapie 6 (DECYZJA
-# 2026-09-08 "zarniki nie sa rysowane"), ale wiele wspolrzednych ponizej
-# (pola ref/value, teksty, kilka wire()) jest zapisanych jako juz-wyliczone
-# wartosci absolutne (nie "baza + PSU_DY") - zmiana tej stalej rozjechalaby
-# je wzgledem reszty bloku. Zostaje 76,2mm; pusta przestrzen po zarnikach
-# wypelniona modulami WEJSCIE/WYJSCIE i ramkami (patrz nizej).
-PSU_DY = 76.2
+# PSU_DY - przesuniecie calego bloku zasilacza w Y. Etap 5b: 76,2mm (miejsce
+# na rzad zarnikow lamp, usuniety w Etapie 6). Etap "kosmetyka arkusza"
+# (2026-09-08, poprawki): miedzy ramka KANAL P (koniec Y=282,41) a rzedem
+# zasilacza zostawal pusty pas ~57,6mm - PSU_DY zmniejszony o SHIFT=49,53mm
+# (39*1,27mm - wielokrotnosc siatki, zeby wszystko zostalo na gridzie) do
+# 26,67mm (nowy pas ~8mm, jak miedzy innymi modulami). Wspolrzedne ponizej
+# zapisane jako juz-wyliczone wartosci absolutne (nie "baza + PSU_DY") zostaly
+# recznie przeliczone o ten sam SHIFT (patrz komentarze przy nich) - reszta
+# bloku uzywa PSU_DY/LR/NR/YP/YM/YHP/YHM wiec przesuwa sie automatycznie.
+PSU_DY = 26.67
 
 # --- siec (mains) ---
 LR, NR = 292.1 + PSU_DY, 311.15 + PSU_DY          # L rail / N rail
 place('J1', 'Connector:Screw_Terminal_01x03', 'MAINS 230V', 35.56, 294.64 + PSU_DY, mirror='y',
       fields={'ref_at': (30.48, 287.02 + PSU_DY, 0), 'val_at': (30.48, 289.56 + PSU_DY, 0)})
 place('F1', 'Device:Fuse', 'T500mA', 49.53, LR, rot=90,
-      fields={'ref_at': (49.53, 361.95, 90), 'val_at': (49.53, 358.14, 90)})
+      fields={'ref_at': (49.53, 312.42, 90), 'val_at': (49.53, 308.61, 90)})  # -SHIFT(49.53) z 361.95/358.14
 place('SW1', 'Switch:SW_DPST_x2', 'ON/OFF', 58.42, LR, unit=1,
       fields={'ref_at': (54.61, 287.02 + PSU_DY, 0), 'val_at': (54.61, 289.56 + PSU_DY, 0)})
 place('SW1', 'Switch:SW_DPST_x2', 'ON/OFF', 58.42, NR, unit=2,
@@ -495,10 +497,10 @@ place('RV301', 'Device:Varistor', 'S14K275', 77.47, 302.26 + PSU_DY,
       fields={'ref_at': (71.12, 300.99 + PSU_DY, 0), 'val_at': (69.85, 303.53 + PSU_DY, 0), 'val_just': 'right'})
 wire((77.47, LR), (77.47, pin('RV301', 1)[1]))
 wire(pin('RV301', 2), (77.47, NR))
-place('R301', 'Device:R', '220k', 88.9, 372.11,
-      fields={'ref_at': (90.17, 370.84, 90), 'val_at': (90.17, 373.38, 90)})
-place('NE1', 'Device:Lamp_Neon', 'NE-2 (jewel)', 88.9, 381.0,
-      fields={'ref_at': (93.98, 379.73, 0), 'val_at': (93.98, 382.27, 0)})
+place('R301', 'Device:R', '220k', 88.9, 322.58,  # -SHIFT(49.53) z 372.11
+      fields={'ref_at': (90.17, 321.31, 90), 'val_at': (90.17, 323.85, 90)})
+place('NE1', 'Device:Lamp_Neon', 'NE-2 (jewel)', 88.9, 331.47,  # -SHIFT z 381.0
+      fields={'ref_at': (93.98, 330.2, 0), 'val_at': (93.98, 332.74, 0)})
 wire((88.9, LR), pin('R301', 1))
 wire(pin('R301', 2), pin('NE1', 2))
 wire(pin('NE1', 1), (88.9, NR))
@@ -513,12 +515,12 @@ place('D303', 'Device:D', 'UF4007', 127.0, 306.07 + PSU_DY, rot=270)
 place('D304', 'Device:D', 'UF4007', 142.24, 306.07 + PSU_DY, rot=270)
 # AC1 (T301 sec HT, pin3=SA) - D301.A (K->A, top->bottom of D301) - D303.K
 wire(pin('D301', 2), pin('D303', 1))                       # pionowa noga AC1 (x=127)
-wire(pin('T301', 3), (127.0, 363.22))
-junc((127.0, 363.22))
+wire(pin('T301', 3), (127.0, 313.69))  # -SHIFT(49.53) z 363.22
+junc((127.0, 313.69))
 # AC2 (T301 sec HT, pin4=SB) - D302.A - D304.K
 wire(pin('D302', 2), pin('D304', 1))                       # pionowa noga AC2 (x=142.24)
-wire(pin('T301', 4), (142.24, 370.84))
-junc((142.24, 370.84))
+wire(pin('T301', 4), (142.24, 321.31))  # -SHIFT z 370.84
+junc((142.24, 321.31))
 place('R302', 'Device:R', '470R', 130.81, 298.45 + PSU_DY, rot=90,
       fields={'ref_at': (127.0, 300.99 + PSU_DY, 90), 'val_at': (127.0, 303.53 + PSU_DY, 90)})
 place('C301', 'Device:C', '10n/1kV', 138.43, 298.45 + PSU_DY, rot=90,
@@ -619,13 +621,13 @@ place('D308', 'Device:D', '1N5822', 287.02, 331.47 + PSU_DY, rot=270)
 place('D309', 'Device:D', '1N5822', 299.72, 331.47 + PSU_DY, rot=270)
 # AC1 (T301 sec zarzenia, pin5=SC) - D306.A / D308.K
 wire(pin('D306', 2), pin('D308', 1))
-wire(pin('T301', 5), (116.84, 400.05), (287.02, 400.05))
-junc((287.02, 400.05))
+wire(pin('T301', 5), (116.84, 350.52), (287.02, 350.52))  # -SHIFT(49.53) z 400.05
+junc((287.02, 350.52))
 # AC2 (T301 sec zarzenia, pin6=SD) - D307.A / D309.K (odsuniete o 2,54mm w X,
 # zeby nie pokryc sie z galezia AC1)
 wire(pin('D307', 2), pin('D309', 1))
-wire(pin('T301', 6), (119.38, 383.54), (119.38, 403.86), (299.72, 403.86))
-junc((299.72, 403.86))
+wire(pin('T301', 6), (119.38, 334.01), (119.38, 354.33), (299.72, 354.33))  # -SHIFT z 383.54/403.86
+junc((299.72, 354.33))
 place('C305', 'Device:C_Polarized', '10000u/16V', 317.5, 316.23 + PSU_DY, tol='20%')
 place('C306', 'Device:C_Polarized', '470u/25V', 337.82, 316.23 + PSU_DY,
       fields={'ref_at': (331.47, 320.04 + PSU_DY, 0), 'val_at': (336.55, 323.85 + PSU_DY, 0),
@@ -659,14 +661,13 @@ wire(pin('C307', 2), (372.11, YHM))
 wire((364.49, YHP), (379.73, YHP)); junc((379.73, YHP))
 wire((379.73, YHP), pin('C308', 1))
 wire(pin('C308', 2), (379.73, YHM))
-wire((379.73, YHP), (384.81, YHP), (387.35, YHP)); label('HEAT_A', (387.35, YHP))
+wire((379.73, YHP), (384.81, YHP), (387.35, YHP))
 wire(pin('D308', 2), (299.72, YHM), (317.5, YHM), (337.82, YHM), (364.49, YHM), (372.11, YHM),
      (379.73, YHM), (384.81, YHM), (387.35, YHM))
 wire(pin('C305', 2), (317.5, YHM))
 wire(pin('C306', 2), (337.82, YHM))
 for x in (299.72, 317.5, 337.82, 364.49, 372.11, 379.73):
     junc((x, YHM))
-label('HEAT_B', (387.35, YHM))
 wire((287.02, YHM), (281.94, YHM))
 label('ELEV', (281.94, YHM), just='right bottom')
 # HEAT_A ma sterownik (U301.VO); HEAT_B (powrot zarzenia) - PWR_FLAG tutaj,
@@ -677,21 +678,80 @@ label('ELEV', (281.94, YHM), just='right bottom')
 pwrflag(387.35, YHM + 2.54, rot=180)
 wire((387.35, YHM), (387.35, YHM + 2.54))
 junc((384.81, YHP)); junc((384.81, YHM))
-text("Zarzenie: 6,3V DC / ok. 0,3A z uzwojenia 7V (3 lampy). LD1085 (LDO) - LM317 ma za duzy dropout.", 218.44, 344.17 + PSU_DY, 1.27)
+
+# =======================================================================
+#  ZARNIKI LAMP (Etap "kosmetyka arkusza", 2026-09-08, DECYZJA - wariant a):
+#  zarniki ECC82 (U1 unit3), EL84 audio L (U2 unit2), EL84 audio P (U202
+#  unit2) PRZYWROCONE na schemat, WEWNATRZ ramki ZARZENIE, polaczone
+#  DRUTAMI (nie etykietami) z wyjsciem VO (+6,3V, szyna na wysokosci YHP)
+#  i z minusem zarzenia (szyna na wysokosci YHM, ta sama siec co ELEV).
+#  Wszystkie piny zbiegaja sie na wspolnej linii bazowej Y_HEAT_PINS
+#  (dokladnie w polowie miedzy YHP i YHM - stad brak kolizji: piny "+"
+#  (F1) kazdej lampy odchodza w gore do YHP, piny "-" (F2/pin9) w dol do
+#  YHM, nigdy nie dziela tego samego odcinka).
+#  ECC82: piny 4 i 5 (oba F1) -> +6,3V; pin 9 (F2) -> minus (srodkowy
+#  odczep zarzenia, zgodnie z zaleceniem - redukcja hum).
+#  EL84: pin 4 (F1) -> +6,3V; pin 5 (F2) -> minus.
+# =======================================================================
+Y_HEAT_PINS = (YHP + YHM) / 2   # = 350.52, w polowie odleglosci YHP<->YHM (22.86mm)
+HEAT_X1, HEAT_X2, HEAT_X3 = 402.59, 433.07, 463.55   # ECC82, EL84(U2 L), EL84(U202 P) - siatka 1.27mm
+
+place('U1', 'Valve:ECC81', 'ECC82', HEAT_X1, Y_HEAT_PINS - 11.43, unit=3,
+      fields={'ref_at': (HEAT_X1 + 5.08, Y_HEAT_PINS - 24.13, 0),
+              'val_at': (HEAT_X1 + 5.08, Y_HEAT_PINS - 21.59, 0)})
+place('U2', 'Valve:EL84', 'EL84 (trioda)', HEAT_X2, Y_HEAT_PINS - 10.16, unit=2,
+      fields={'ref_at': (HEAT_X2 + 5.08, Y_HEAT_PINS - 22.86, 0),
+              'val_at': (HEAT_X2 + 5.08, Y_HEAT_PINS - 20.32, 0)})
+place('U202', 'Valve:EL84', 'EL84 (trioda)', HEAT_X3, Y_HEAT_PINS - 10.16, unit=2,
+      fields={'ref_at': (HEAT_X3 + 5.08, Y_HEAT_PINS - 22.86, 0),
+              'val_at': (HEAT_X3 + 5.08, Y_HEAT_PINS - 20.32, 0)})
+
+# ECC82: piny 4/5 (F1) w gore do szyny +6,3V (YHP); pin 9 (F2) w dol do
+# szyny minus (YHM). Wszystkie 3 piny wychodza z tej samej linii bazowej
+# (Y_HEAT_PINS) ale w przeciwnych kierunkach - brak wspolnego odcinka.
+wire(pin('U1', 4, unit=3), (HEAT_X1 - 2.54, YHP))
+wire(pin('U1', 5, unit=3), (HEAT_X1 + 2.54, YHP))
+wire(pin('U1', 9, unit=3), (HEAT_X1, YHM))
+
+# EL84 (U2, kanal L): pin 4 (F1) w gore, pin 5 (F2) w dol.
+wire(pin('U2', 4, unit=2), (HEAT_X2 - 2.54, YHP))
+wire(pin('U2', 5, unit=2), (HEAT_X2 + 2.54, YHM))
+
+# EL84 (U202, kanal P): pin 4 (F1) w gore, pin 5 (F2) w dol.
+wire(pin('U202', 4, unit=2), (HEAT_X3 - 2.54, YHP))
+wire(pin('U202', 5, unit=2), (HEAT_X3 + 2.54, YHM))
+
+# szyna +6,3V (YHP) - przedluzona od U301.VO (387.35) przez wszystkie
+# odczepy "+" trzech lamp (kolejnosc rosnaco w X)
+wire((387.35, YHP), (HEAT_X1 - 2.54, YHP), (HEAT_X1 + 2.54, YHP),
+     (HEAT_X2 - 2.54, YHP), (HEAT_X3 - 2.54, YHP))
+for x in (HEAT_X1 - 2.54, HEAT_X1 + 2.54, HEAT_X2 - 2.54):
+    junc((x, YHP))
+
+# szyna minus zarzenia (YHM, = ELEV) - przedluzona od 387.35 przez
+# wszystkie odczepy "-" trzech lamp
+wire((387.35, YHM), (HEAT_X1, YHM), (HEAT_X2 + 2.54, YHM), (HEAT_X3 + 2.54, YHM))
+junc((387.35, YHM))
+for x in (HEAT_X1, HEAT_X2 + 2.54):
+    junc((x, YHM))
+
+text("Zarzenie: 6,3V DC / ok. 1,7A (2x EL84 0,76A + ECC82 0,15A; budzet 1,9A) z uzwojenia 7V/3A.",
+     218.44, 344.17 + PSU_DY, 1.27)
 text("Skrecona para na przewodach zarzenia. LD1085: blaszka = VOUT - izolacja od chassis.", 218.44, 346.71 + PSU_DY, 1.27)
-text("Zarzenie do lamp (skrecona para): ECC82 piny 4+5 -> HEAT_A, pin 9 -> HEAT_B;", 218.44, 349.25 + PSU_DY, 1.27)
-text("EL84 (x2) pin 4 -> HEAT_A, pin 5 -> HEAT_B. Zarniki NIE sa rysowane (patrz docs).", 218.44, 351.79 + PSU_DY, 1.27)
+text("LD1085 (LDO) - LM317 ma za duzy dropout przy 1,7A (V_RAW ~9V z uzwojenia 7V wystarcza).",
+     218.44, 349.25 + PSU_DY, 1.27)
+text("Zarzenie do lamp: skrecona para, minus = ELEV (+53V).", HEAT_X1, Y_HEAT_PINS + 26.67, 1.27)
 
 # --- ground breaker (jedyny styk masy z chassis) ---
 place('R309', 'Device:R', '10R/5W', 45.72, 325.12 + PSU_DY,
-      fields={'ref_at': (39.37, 401.32, 90), 'val_at': (41.4, 401.32, 90)})
+      fields={'ref_at': (39.37, 351.79, 90), 'val_at': (41.4, 351.79, 90)})  # -SHIFT z 401.32
 place('D310', 'Device:D', '1N5408', 55.88, 325.12 + PSU_DY, rot=270,
-      fields={'ref_at': (58.42, 398.78, 0), 'val_at': (58.42, 401.32, 0)})
+      fields={'ref_at': (58.42, 349.25, 0), 'val_at': (58.42, 351.79, 0)})  # -SHIFT z 398.78/401.32
 place('D311', 'Device:D', '1N5408', 66.04, 325.12 + PSU_DY, rot=90,
-      fields={'ref_at': (68.58, 398.78, 0), 'val_at': (68.58, 401.32, 0)})
+      fields={'ref_at': (68.58, 349.25, 0), 'val_at': (68.58, 351.79, 0)})  # -SHIFT z 398.78/401.32
 place('C309', 'Device:C', '100n/630V', 76.2, 325.12 + PSU_DY,
-      fields={'ref_at': (79.5, 401.32, 90), 'val_at': (81.5, 401.32, 90),
-              'tol_at': (83.5, 401.32, 90)}, tol='10%')
+      fields={'ref_at': (79.5, 351.79, 90), 'val_at': (81.5, 351.79, 90),
+              'tol_at': (83.5, 351.79, 90)}, tol='10%')  # -SHIFT z 401.32
 wire((40.64, 321.31 + PSU_DY), (45.72, 321.31 + PSU_DY), (55.88, 321.31 + PSU_DY), (66.04, 321.31 + PSU_DY), (76.2, 321.31 + PSU_DY))
 wire((43.18, 328.93 + PSU_DY), (45.72, 328.93 + PSU_DY), (55.88, 328.93 + PSU_DY), (66.04, 328.93 + PSU_DY), (76.2, 328.93 + PSU_DY))
 for x in (45.72, 55.88, 66.04):
@@ -713,9 +773,9 @@ frame(15, 15, 255, 68, "WEJSCIE: gniazda RCA, crossfeed S1, glosnosc RV1")
 frame(15, 74, 255, 177, "KANAL L: 1/2 ECC82 -> EL84 (trioda) -> OPT")
 frame(15, 179.41, 255, 282.41, "KANAL P: 1/2 ECC82 -> EL84 (trioda) -> OPT")
 frame(262, 130, 330, 235, "WYJSCIE: jack 6,3 mm")
-frame(15, 340, 122, 430, "SIEC 230V + ground breaker")
-frame(122, 340, 262, 430, "ZASILACZ B+ 300V (CLC) + rozladowanie K1")
-frame(262, 340, 400, 430, "ZARZENIE 6,3V DC (LD1085, elewacja ELEV)")
+frame(15, 290.47, 122, 380.47, "SIEC 230V + ground breaker")
+frame(122, 290.47, 262, 380.47, "ZASILACZ B+ 300V (CLC) + rozladowanie K1")
+frame(262, 290.47, 495.3, 380.47, "ZARZENIE 6,3V DC (LD1085, elewacja ELEV)")
 
 # =======================================================================
 #  serialize
