@@ -425,13 +425,180 @@ SW401.1)` / `same(R406.2, SW401.4)` (R405/R406 -> styk); dodane
 `diff(SW401.1, SW401.2)` / `diff(SW401.4, SW401.5)` (styk != COM - test
 że nie ma przypadkowego zwarcia stykiem-COM na schemacie).
 
-**Weryfikacja.** `check.py`: wszystkie asercje OK (58 sieci). ERC
-(`kicad-cli sch erc --format json --severity-all`): **0 błędów, 0
-ostrzeżeń** (bez zmian względem stanu sprzed tej zmiany). Idempotencja:
-dwa kolejne uruchomienia `gen.py` dają identyczny plik (md5 zgodne).
-Render modułu WEJŚCIE (`render_schematic_png`/PDF): J401/J402 z lewej,
-tor prosty R401∥C401 (góra)/R402∥C402 (dół) zawsze wpięty; galęzie
-krzyżowe (R403/C403/R405 i R404/C404/R406) zbiegają się do SW401A/SW401B
-(dwie sekcje jedna nad drugą, tuż przed magistralami wyjściowymi), NC na
-pinach 3/6, podpis S1 nad całym modułem - czytelne, bez nakładających się
-pól opisowych.
+## Montaż — propozycja rozmieszczenia (2026-09-08, poprawki tego samego dnia)
+
+Propozycja fizycznego rozmieszczenia elementów w obudowie (rzut z góry,
+**260×200 mm wnętrza** — zmniejszone z pierwotnych 300×250, patrz "Obudowa
+zwarta" niżej, skala 1:1) — `headamp/layout/layout_top.py` (Python +
+matplotlib, bez KiCada) → `headamp/ref/layout_top.svg`/`.png`. Tabela
+przydziału elementów toru audio (nóżki podstawek lamp vs listwy
+lutownicze) — `headamp/ref/layout_bom_montaz.md`.
+
+Założenia (nie zmieniać bez decyzji użytkownika): montaż **powietrzny**
+toru audio (listwy lutownicze + elementy dolutowane wprost do nóżek
+podstawek lamp, wg zasady "stoppery/zwora przy lampie, RC katodowe i
+odsprzęganie na listwach"). Lewa strefa (x 0–100 mm) = zasilanie: T301 (oś
+równolegle do X) tył-lewo, L1 przed nim, IEC+F1 **w ścianie lewej, z
+przodu** (patrz "Poprawki 2026-09-08, runda 2" niżej — pierwotnie planowane
+w ścianie tylnej, przeniesione z powodu kolizji z T301), zarezerwowana
+strefa "PCB zasilacza" 90×140 mm pod płytą. Prawa strefa (x 100–260) =
+audio: OPT T1/T201 przy tylnej ścianie (oś obrócona 90° względem T301),
+EL84 tuż przed swoimi OPT, ECC82 z przodu pośrodku między EL84 (≥35 mm
+odstępu między lampami, ≥25 mm od transformatorów, **oraz ≥100 mm
+T301↔RV1/RCA/ECC82** — wszystkie trzy reguły sprawdzone w skrypcie
+automatycznie, geometria OK bez kolizji). Front (y=0), od lewej: J1+F1
+(ściana lewa, x=0, y≈6–54) — SW1+NE1 (przesunięte w prawo, x=58/80) —
+SW401 (crossfeed) — RV1 — SW2/SW202 — J403. Tył (y=200): J401/J402 RCA
+(środek-prawo, z dala od T301).
+
+**DECYZJA: zasilacz na PCB** (nie powietrznie; potwierdzone 2026-09-08,
+zamyka wcześniejszą "otwartą decyzję"). Strefa 90×140 mm pod płytą (lewa
+strefa zasilania) to **PCB zasilacza**: mostki HT, filtr CLC (bez dużych
+elektrolitów, jeśli C302/C303 pójdą w "kubku" na górnej płycie — obie
+opcje zostają otwarte, patrz niżej), K1 (przekaźnik rozładowania),
+LD1085 + radiator, sieć ochronna wejścia (NTC/warystor/neon-rezystor),
+ground breaker (jeden punkt GND↔PE, przy IEC). Uzasadnienie decyzji:
+1) elementy mechaniczne wymagają solidnego mocowania, którego PCB nie
+   zapewnia dobrze samo z siebie: radiator LD1085 (skręcany do chassis),
+   przekaźnik K1 (masa, wibracje), potencjalnie 10000 µF (V_RAW) — to
+   wszystko lepiej trzymać na płytce przykręconej do chassis, nie na
+   przewodach powietrznych; 2) odstępy izolacyjne przy ~300 V DC są
+   łatwiejsze do zagwarantowania i powtarzalne na projektowanej płytce
+   (kontrolowane szczeliny/prześwity) niż przy ręcznym montażu
+   powietrznym; 3) **blok wspólny serii** (`common/`, LD1085 + elewacja +
+   K1 + ground breaker identyczne jak RIAA) — jedna płytka PCB obsługuje
+   docelowo trzy urządzenia serii TERCET, więc zaprojektowana raz się
+   nie marnuje.
+   Elementy pozostające na chassis (górna płyta), NIE na PCB: **T301, L1,
+   IEC J1+F1, SW1, NE1** (front) — mechaniczne/ciężkie lub muszą fizycznie
+   przebijać obudowę (gniazda/przełączniki panelowe).
+   TODO: projekt PCB zasilacza (KiCad; Konnect wymaga konfiguracji IPC dla
+   narzędzi PCB — patrz CLAUDE.md).
+
+**L1 (dławik 5–10 H, ~0,5–1 kg) — DECYZJA: zostaje na chassis (górnej
+płycie), NIE na PCB.** Powód: masa i objętość dławika (rdzeń z
+uzwojeniem) czynią go elementem typowo mocowanym mechanicznie do metalu
+(śruba przez rdzeń/klamrę), a nie lutowanym na płytce — PCB nie udźwignie
+takiego ciężaru bez dodatkowego wsparcia mechanicznego, więc prościej
+zostawić go tam, gdzie mocowanie jest naturalne. L1 stoi na górnej płycie
+tuż przed T301 (patrz rysunek), w tej samej strefie co PCB zasilacza
+(PCB fizycznie POD nim, na osobnej warstwie — brak kolizji, to inna
+płaszczyzna montażu).
+
+**Obudowa zwarta: 260×200 mm (z 300×250).** Przeliczone na realnych
+footprintach: T301 85×70, L1 55×45, OPT 55×45 ×2, podstawki noval Ø22 +
+kołnierz, RV1 (galka Ø26 + korpus 40×26 od spodu). Zmiany geometrii
+względem pierwszej propozycji:
+- Strefa zasilania (x 0–100) bez zmian szerokości (T301 i tak potrzebuje
+  ~95 mm z marginesem) — oszczędność przyszła z osi Y i strefy audio.
+- EL84 (U2/U202) przesunięte bliżej środka (x=128/228, było 140/240) i
+  bliżej frontu (y=90, było 150) — mniejszy odstęp od OPT (nadal ≥25 mm,
+  sprawdzone: 28,5 mm po korekcie) i od siebie (100 mm, zapas nad
+  wymaganymi 35 mm).
+- ECC82 (U1) przesunięty na x=178 (było 190), y=45 bez zmian.
+- Wysokość obudowy zmniejszona ze 250 na 200 mm — puste pole audio
+  (dawne y≈60–140 z pierwszej propozycji) zamknięte przez przesunięcie
+  EL84/OPT bliżej frontu.
+- Wynik: 260×200 mm = 52 000 mm² vs 300×250 mm = 75 000 mm² (~31%
+  mniejsza powierzchnia górnej płyty), marginesy od ścian dla elementów
+  stojących swobodnie (T301/L1/OPT/lampy/strefa PCB) zachowane w
+  okolicach 8–13 mm (nie ściśle wymuszone skryptem — sprawdzone wizualnie
+  na renderze, patrz "Weryfikacja" niżej).
+
+**Trasa sygnału i listwa C (poprawka).** Listwa C (crossfeed, R401–R406/
+C401–C404) przesunięta **na prawo od RV1** (między RV1 a prawą ścianą,
+blisko trasy z RCA) — poprzednio leżała na lewo od RV1, co oznaczało
+krzyżowanie się trasy sygnału z frontem płyty. Nowa trasa: RCA (tył,
+środek-prawo) → wzdłuż prawej krawędzi obudowy → listwa C → RV1 → ECC82.
+Kabel ekranowany na całej tej trasie (podpisane na rysunku).
+
+**Szyna masy (poprawka rysunku, aktualna wersja — patrz też "runda 2"
+niżej).** Łamana **ortogonalna** (bez przekątnych): odcinek poziomy na
+wysokości listw B (y=122) łączący wprost listwa B_L → listwa B_P, plus
+pionowy odczep w x=178 do listwy A (y=122→70). Od listwy B_L dodatkowy
+odcinek — korytarzem x≈101 mm (czysty prześwit między L1/T301 a T1, bez
+przecinania żadnego transformatora/dławika) — do punktu ground breaker
+**na PCB zasilacza, przy IEC** (aktualnie w ścianie lewej, front — patrz
+"runda 2") — jedyny styk masy sygnałowej z chassis/PE, podpisane wprost
+na rysunku ("masa sygnałowa ≠ chassis poza tym punktem").
+
+**Weryfikacja (po poprawkach).** `layout_top.py` — wynik automatycznej
+kontroli geometrii: **brak kolizji na górnej płycie, wszystko w
+obudowie, odstępy lamp/trafo (≥35 mm między lampami, ≥25 mm lampa↔trafo)
+oraz nowa reguła T301↔RV1/RCA/ECC82 (≥100 mm, liczone środek-środek)
+zachowane** — najciaśniejszy margines to U2/U202↔OPT, 28,5 mm (zapas
+3,5 mm nad wymogiem). `check.py` (schemat, bez zmian w tym kroku):
+wszystkie asercje OK (58 sieci). ERC: **0 błędów, 0 ostrzeżeń** (bez
+zmian względem stanu sprzed tej zmiany — rysunek montażowy nie dotyka
+`headamp.kicad_sch`). Idempotencja `gen.py`: bez zmian (nie ruszany w tym
+kroku). Render PNG obejrzany i poprawiony pod kątem kolizji etykiet
+(m.in. opis strefy PCB zasilacza rozbity na krótki tytuł + osobny akapit,
+żeby nie nachodził na etykietę L1; opis frontu rozbity na dwie linie,
+żeby nie wychodził poza kadr; trasy masy/żarzenia/B+ poprowadzone poza
+obrysami transformatorów zamiast po przekątnej przez nie).
+
+**Poprawka R1/R201 (grid leak wejściowy).** W tabeli
+`headamp/ref/layout_bom_montaz.md` R1 (470k, kanał L) i R201 (kanał P)
+były błędnie przypisane do sekcji "między listwą A i B" (trasa sprzęgacza
+driver→EL84). W rzeczywistości R1/R201 siedzą na węźle **siatki ECC82**
+(między nóżką R2/C1 — pin 7 U1 unit A dla kanału L, pin 2 unit B dla
+kanału P — a GND), elektrycznie niezwiązanym z sprzęgaczem C5/R6 po
+stronie EL84. Poprawione: R1/R201 przeniesione do tabeli "na nóżkach
+podstawek" (fizycznie: na listwie A przy wejściu siatki, albo wprost z
+nóżki R2/C1 do szyny masy); sekcja "między A i B" zawiera już tylko
+R6/R206 i C5/C205 — R7/R207 (grid stopper EL84) zostaje bez zmian na
+nóżce EL84, jak poprzednio.
+
+**Poprawki 2026-09-08, runda 2 (kolizja IEC, trasa żarzenia, szyna masy).**
+
+1. **J1+F1 (IEC C14 + bezpiecznik) — kolizja z T301, przeniesione na
+   ścianę lewą.** Gniazdo IEC z bezpiecznikiem ma korpus ~48×28 mm na
+   ścianie i wchodzi ~30–35 mm w głąb obudowy (plus przewody) — w
+   pierwotnej propozycji (ściana tylna, x≈42) kolidowało to z T301, który
+   przy tej ścianie sięga do y=190. Skrypt dostał bryłę "głębokości" IEC
+   48×35 mm włączoną do automatycznej kontroli kolizji. Rozważone warianty:
+   (a) IEC na wysokości L1 (y≈65) + przesunięcie L1 w prawo — **odrzucony**:
+   geometrycznie niewykonalny (L1, 55 mm szerokości, nie mieści się między
+   krawędzią IEC a wymaganym 25 mm odstępem od U2 — dostępne miejsce to
+   tylko 52 mm); (b) IEC z przodu ściany lewej (x=0, y≈6–54) +
+   przesunięcie SW1/NE1 w prawo — **wybrany**. L1 zostaje bez zmian.
+   Powód wyboru: najkrótsze i najprostsze prowadzenie przewodu sieciowego
+   IEC(+F1) → SW1 → sieć ochronna (PCB) → T301, cały czas w obrębie strefy
+   zasilania (x<100), bez zbliżania 230 V do frontu przy RV1 (x=140).
+   Skutki uboczne: SW1 przesunięty z x=18 na x=58, NE1 z x=34 na x=80 (obie
+   dalej na froncie, y=13, kolejność na panelu bez zmian: SW1→NE1→SW401→
+   RV1→SW2→J403); C302/C303 (ilustracyjne elektrolity PCB zasilacza,
+   pod płytą) przesunięte z y=45 na y=150 (nadal w strefie PCB, teraz pod
+   T301) — poprzednia pozycja kolidowała wizualnie z etykietą nowego J1+F1.
+2. **Trasa żarzenia (poprawka).** Korytarz między T301/L1 a T1 przesunięty
+   z x≈98 na x≈101 (razem z odgałęzieniem szyny masy, patrz niżej — większy
+   margines po przesunięciu L1... choć L1 finalnie zostało bez zmian,
+   korytarz i tak przesunięty dla większego zapasu). Ważniejsza poprawka:
+   odgałęzienie do U1 (ECC82, 178,45) **już nie schodzi przy RV1/wejściu**
+   (dawna trasa: korytarz → y=45 → w prawo pod RV1/U1); teraz żarzenie
+   idzie rzędem EL84 (y=90) od U2 do U202, a do U1 odczep **prosto w dół ze
+   środka między EL84 (x=178, y=90→56)** — z dala od RV1 (x=140) i wejścia.
+   Podpis na rysunku: "żarzenie DC – skręcona para, z dala od wejścia".
+3. **Szyna masy — dostosowana do nowego IEC.** Odgałęzienie od listwy B_L
+   do ground breakera zaktualizowane: korytarz x≈101 → y=45 → w lewo do
+   x=20 → w dół do y=30 (wewnątrz nowej bryły J1+F1) — fizycznie
+   najkrótsza droga do PCB zasilacza przy nowej pozycji IEC (ściana lewa,
+   front), bez przecinania L1/T301/SW1.
+
+**Weryfikacja (runda 2).** `layout_top.py`: kontrola geometrii automatyczna
+— brak kolizji na górnej płycie (w tym nowa bryła głębokości J1+F1), wszystko
+w obudowie, odstępy lamp/trafo i reguła T301↔RV1/RCA/ECC82 zachowane. Render
+PNG obejrzany i poprawiony (etykieta szyny masy B_L→A→B_P podniesiona, żeby
+nie nachodziła na opis listwy B_L; C302/C303 przesunięte, żeby nie nachodziły
+na etykietę J1+F1). Zmiana nie dotyka `headamp.kicad_sch` / `gen.py` / ERC —
+tylko rysunku montażowego i tego dokumentu.
+
+### Uwagi do projektu PCB zasilacza (2026-09-08)
+- T301 stoi na górnej płycie nad strefą PCB — śruby mocujące transformatora
+  muszą minąć płytkę: przewidzieć wycięcia/otwory w PCB albo przesunąć
+  płytkę ~30 mm w przód (poza obrys T301). Do rozstrzygnięcia przy projekcie.
+- Crossfeed S1 — kontrolne liczby z niezależnej analizy węzłowej (źródło
+  100 Ω, obciążenie 50 k): ON przesłuch −14 dB @100 Hz / −29 dB @1 kHz,
+  strata wtrąceniowa 0,6–1,6 dB; OFF (S1 po stronie wyjścia) 0…−0,4 dB;
+  stary wariant OFF (S1 na wejściu) dołek −1,6 dB w basie. `sim/crossfeed_sw.cir`
+  do uruchomienia w ngspice, gdy będzie dostępny (brak na stacji Windows).

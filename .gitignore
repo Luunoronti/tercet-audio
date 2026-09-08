@@ -18,3 +18,4 @@ riaa/svg_out/
 headamp/svg_out/
 headamp/*.pdf
 headamp/headamp.net
+!headamp/ref/layout_top.png

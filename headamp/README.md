@@ -50,6 +50,18 @@ Szczegóły i log decyzji: `docs/PROJEKT-HEADAMP.md`.
   obciążają wyjścia, ugięcie basu ~1,4 dB - uzasadnienie zmiany).
 - `ref/se_el84.svg`, `ref/crossfeed.svg` — schematy poglądowe (schemdraw,
   historyczne, przed generatorem)
+- `layout/layout_top.py` — generator (matplotlib, bez KiCada) propozycji
+  **rozmieszczenia elementów w obudowie** (rzut z góry, 260×200 mm, skala
+  1:1 — zmniejszone 2026-09-08 z pierwotnych 300×250, patrz
+  docs/PROJEKT-HEADAMP.md) → `ref/layout_top.svg`/`.png`. Zasilacz na
+  chassis (górnej płycie) tylko jako bryły T301/L1/J1+F1/SW1/NE1; reszta
+  zasilacza na **PCB** (DECYZJA, nie powietrznie — patrz
+  docs/PROJEKT-HEADAMP.md) w zarezerwowanej strefie pod płytą. Montaż
+  powietrzny toru audio: listwy lutownicze + elementy na nóżkach
+  podstawek lamp — szczegółowy przydział w `ref/layout_bom_montaz.md`.
+- `ref/layout_bom_montaz.md` — tabela przydziału elementów toru audio:
+  na nóżkach podstawek lamp vs listwy lutownicze A/B_L/B_P/D, z numerami
+  pinów (ECC82/EL84) i uzasadnieniem.
 
 ## Workflow (regeneracja schematu)
 ```
