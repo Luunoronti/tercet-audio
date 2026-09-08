@@ -155,19 +155,17 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Ground breaker: 1:1 z common/riaa (10R/5W + 2x1N5408 antyrownolegle
   + 100n/630V), jedyny styk masy sygnalowej (GND) z PE/chassis.
 
-## Stan realizacji (2026-09-08, po Etapie 6)
+## Stan realizacji (2026-09-08, po kosmetyce arkusza)
 - Schemat generowany skryptem **`headamp/gen.py`** (+ `symlib.py` +
   `check.py`, wzor riaa/) - **zrodlo prawdy = gen.py, NIE edytowac
   `headamp.kicad_sch` recznie**. UUID deterministyczne (uuid5) -
   regeneracja jest idempotentna (git diff pusty przy dwoch uruchomieniach).
-- Kanał L + kanał P + zasilacz + crossfeed S1 + gniazda WE/WY
-  **kompletne, layout w ramkach modułów**. ERC: ostrzeżenia oczekiwane
-  (4): missing_unit x3 (U1/U2/U202 - unity grzania nie są rysowane,
-  DECYZJA) + multiple_net_names ELEV/HEAT_B (zamierzone, jak w
-  common/riaa); **plus 3 błędy `missing_power_pin`** (te same 3 unity -
-  konsekwencja typu pinu `power_in` w bibliotece Valve, patrz "Decyzje -
-  Etap 6" i TODO - OTWARTE, wymaga decyzji użytkownika czy akceptować
-  formalnie niezerowy ERC, czy przywrócić unity grzania).
+- Kanał L + kanał P + zasilacz + crossfeed S1 + gniazda WE/WY + żarniki
+  lamp **kompletne, layout w ramkach modułów**. **ERC: 0 błędów, 0
+  ostrzeżeń** (po przywróceniu żarników drutami - patrz "Decyzje -
+  kosmetyka arkusza" niżej; `multiple_net_names` ELEV/HEAT_B też
+  zniknęło, bo etykieta HEAT_B na końcu szyny została usunięta, a jedyna
+  pozostała nazwa na tej sieci to ELEV).
 - UWAGA numeracja na schemacie różni się od sekcji "Wartości" wyżej:
   C2=1µ (katoda, stały), C3=100µ (za SW2), C5=100n (sprzęgający),
   C6=470µ (katoda EL84), R9=100R (zwora triodowa) - kanał L; kanał P =
@@ -190,7 +188,7 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
   (Etap 6/A) - patrz "Decyzje - Etap 6".
 - Kolejne kroki i stan narzędzi (Konnect/KiCad): patrz CLAUDE.md w korzeniu.
 
-## TODO (aktualizacja po Etapie 5b - skreslone zrobione)
+## TODO (aktualizacja po kosmetyce arkusza - skreslone zrobione)
 - ~~gen.py + check.py (kanał L port 1:1)~~ ZROBIONE (Etap 0-1).
 - ~~Kanał P~~ ZROBIONE (Etap 5a).
 - ~~Zasilacz (B+, żarzenie, K1, ground breaker)~~ ZROBIONE (Etap 5b).
@@ -199,13 +197,10 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - ~~Estetyka schematu (Etap 6)~~ ZROBIONE (przegląd render -> poprawki
   pól ref/value/tolerance w gen.py: domyślne offsety 3-liniowe, F1/SW1,
   J1/PWR_FLAG/Earth_Protective, R301/NE1, R303/L1, ground breaker).
-  Layout w ramkach (Etap A) rozwiązał też ciasnotę rzędu grzania - rząd
-  usunięty (żarniki nie są rysowane), moduły czytelne w ramkach.
-- **OTWARTE (do decyzji użytkownika): ERC pokazuje 3 błędy
-  `missing_power_pin`** (U1/U2/U202) - patrz "Decyzje - Etap 6" niżej,
-  ostatni punkt. Do rozstrzygnięcia: zaakceptować błędy jako świadomą
-  konsekwencję "żarniki nie są rysowane", czy przywrócić unity grzania
-  (z realnym okablowaniem) żeby mieć ERC=0 błędów dosłownie.
+- ~~ERC `missing_power_pin` (3 błędy, U1/U2/U202)~~ ZAŁATWIONE (2026-09-08,
+  wariant a): żarniki lamp przywrócone na schemat, rysowane drutami
+  wewnątrz ramki ŻARZENIE - patrz "Decyzje - kosmetyka arkusza" niżej.
+  ERC = 0 błędów, 0 ostrzeżeń.
 - BOM (TME) + specyfikacja OPT dla nawijacza (5k:80, ≥45mA, Lp≥25H).
 - Zakup DT 770 M; sprawdzić sterowniki 0202 pod Windows.
 - Decyzja obudowy (seria TERCET).
@@ -280,13 +275,75 @@ KANAŁ L nad KANAŁ P (środek, ta sama geometria + dy); WYJŚCIE na prawo
 od kanałów, między nimi w Y; dół (cała szerokość): SIEĆ | ZASILACZ B+ |
 ŻARZENIE.
 
-**F. Rozmiar arkusza: A2 zostaje** (DECYZJA). Treść po Etapie 6 zajmuje
-ok. 400×428 mm (blisko górnej granicy A2 w orientacji poziomej,
-594×420mm - jak w commicie sprzed tego etapu, `PSU_DY` zostawiony bez
-zmian: część współrzędnych pól/tekstów w sekcji zasilacza jest zapisana
-jako już-wyliczone wartości absolutne, nie "baza + PSU_DY", więc
-zmniejszenie tej stałej rozjechałoby je względem reszty bloku - zbyt
-ryzykowne dla zysku kilkudziesięciu mm). A3 (420×297) odpada z powodu
-wysokości treści (428 mm > 297 mm) niezależnie od szerokości. Pusta
-przestrzeń po prawej stronie arkusza (moduły kończą się ok. x=400 z 594)
-pozostaje - do ew. dalszego wykorzystania (większy WYJŚCIE, adnotacje).
+**F. Rozmiar arkusza: A2 zostaje** (DECYZJA, potwierdzona 2026-09-08 przy
+kosmetyce arkusza - patrz niżej). Treść po Etapie 6 zajmowała ok.
+400×428 mm (blisko górnej granicy A2 w orientacji poziomej, 594×420mm).
+A3 (420×297) odpadał z powodu wysokości treści (428 mm > 297 mm)
+niezależnie od szerokości, i nadal odpada po zmniejszeniu `PSU_DY` (patrz
+"Decyzje - kosmetyka arkusza" niżej): treść ma teraz ok. 378 mm wysokości
+- dalej ponad limit A3 (297 mm) o ~80 mm, więc A2 zostaje.
+
+## Decyzje - kosmetyka arkusza (2026-09-08)
+
+**G. Żarniki lamp przywrócone (wariant a).** Decyzja z Etapu 6 ("żarniki
+nie są rysowane", ERC z 3 błędami `missing_power_pin`) COFNIĘTA na
+wyraźne życzenie użytkownika. Unity grzania ECC82 (U1 unit3, piny 4/5/9)
+i EL84 audio L/P (U2/U202 unit2, piny 4/5) są teraz narysowane WEWNĄTRZ
+ramki „ŻARZENIE 6,3V DC", połączone **drutami** (nie etykietami) z
+wyjściem VO regulatora LD1085 (U301, szyna „+6,3V" na wysokości `YHP`) i
+z minusem żarzenia (szyna na wysokości `YHM`, ta sama sieć co ELEV).
+Etykiety `HEAT_A`/`HEAT_B` oraz opisowy tekst z mapowaniem pinów
+usunięte - teraz widać połączenia bezpośrednio na rysunku. Topologia:
+ECC82 piny 4 i 5 (oba nazwane `F1` w symbolu, dwa końce żarnika) → +6,3V;
+pin 9 (`F2`, środkowy odczep) → minus (redukcja przydźwięku, zgodnie z
+zaleceniem). EL84: pin 4 (`F1`) → +6,3V; pin 5 (`F2`) → minus. Wszystkie
+piny każdej lampy „zbiegają się" na wspólnej linii bazowej w połowie
+odległości między szynami (`Y_HEAT_PINS = (YHP+YHM)/2`) i stamtąd
+rozchodzą się w przeciwne strony (+ w górę, − w dół) - dzięki temu żaden
+odcinek drutu nie nakłada się na inny (kluczowe dla ECC82, gdzie pin
+środkowy `9` siedzi geometrycznie między pinami `4` i `5`). Krótki tekst
+na schemacie: "Zarzenie do lamp: skrecona para, minus = ELEV (+53V)."
+Ramka ŻARZENIE poszerzona (x1: 400→495,3mm), żeby pomieścić 3 lampy w
+rzędzie (rozstaw 30,48/29,21mm - konwencja z wcześniejszej wersji
+rysunku, commit fc227e8). **Efekt: ERC = 0 błędów, 0 ostrzeżeń**
+(zniknęły `missing_unit` x3 i `missing_power_pin` x3; `multiple_net_names`
+ELEV/HEAT_B też zniknęło, bo etykieta `HEAT_B` na końcu szyny została
+usunięta - jedyna nazwa na tej sieci to teraz `ELEV`). check.py: dodane
+asercje `same`/`diff` dla żarników po stronie lamp (U1.4/U1.5/U1.9,
+U2.4/U2.5, U202.4/U202.5) w sekcji "zarzenia (grzanie)".
+
+**H. Prąd żarzenia poprawiony: 1,7 A, nie 0,3 A.** Błąd merytoryczny w
+tekście na schemacie ("ok. 0,3A z uzwojenia 7V (3 lampy)") - to była
+literówka/nieporozumienie, prawidłowa wartość to **ok. 1,7 A** (2×EL84 ≈
+0,76 A każda + ECC82 ≈ 0,15 A na obie połówki; budżet w tym dokumencie
+to ≈1,9 A, patrz sekcja "Wartości" wyżej). Tekst poprawiony na: "Zarzenie:
+6,3V DC / ok. 1,7A (2x EL84 0,76A + ECC82 0,15A; budzet 1,9A) z
+uzwojenia 7V/3A." Inne liczby na schemacie/w dokumentacji sprawdzone przy
+okazji (bez zmian, uznane za spójne):
+- Uzwojenie żarzenia 7V/3A (T301) - zapas przy 1,7 A poboru, OK.
+- B+ ~300V @ ~65mA (dokumentacja, nie schemat) - zgodne z symulacją
+  (2×29mA EL84 + 2×2,8mA driver ≈ 63,6mA ≈ "~65mA").
+- LD1085 3A - z dużym zapasem ponad 1,7A wymagane.
+- Dropout LD1085 przy 1,7A: uzwojenie 7V AC -> mostek Schottky 1N5822 ->
+  V_RAW (peak ~7×1,41−2×~0,5≈8,9V, pod obciążeniem realnie kilka mV/V
+  mniej z tętnieniem) - z zapasem pokrywa Vout(6,3V)+dropout LD1085
+  (typowo ~1,3-1,5V przy tym prądzie); tekst na schemacie zaktualizowany
+  na "LD1085 (LDO) - LM317 ma za duzy dropout przy 1,7A (V_RAW ~9V z
+  uzwojenia 7V wystarcza)." Zastrzeżenie: nie zmierzone na prototypie,
+  wartość orientacyjna z danych katalogowych.
+
+**I. Pusty pas między KANAŁ P a rzędem zasilacza zamknięty.** Między
+ramką KANAŁ P (kończy się Y=282,41mm) a rzędem SIEC/ZASILACZ/ŻARZENIE
+(zaczynał się Y=340mm) był pusty pas ~57,6mm. `PSU_DY` (przesunięcie
+całego bloku zasilacza w Y) zmniejszony z 76,2mm do 26,67mm (SHIFT =
+49,53mm = 39×1,27mm - wielokrotność siatki schematu, żeby wszystko
+zostało na gridzie). Nowy pas ~8mm, jak między innymi modułami na
+arkuszu. Współrzędne zapisane wcześniej jako już-wyliczone wartości
+absolutne (nie "baza + PSU_DY": pola ref/value F1/R301/NE1/R309/D310/
+D311/C309, kilka punktów drutów mostka HT/żarzenia) zostały ręcznie
+przeliczone o ten sam SHIFT - reszta bloku (`LR`/`NR`/`YP`/`YM`/`YHP`/
+`YHM` i wszystko wyrażone przez `PSU_DY`) przesunęła się automatycznie.
+Zweryfikowane: regeneracja idempotentna (dwa uruchomienia `gen.py` dają
+identyczny plik), ERC = 0/0, cała treść arkusza mieści się wygodnie w
+obrębie ramki A2 (marginesy zachowane, nic nie dotyka ramki arkusza ani
+tabliczki tytułowej - sprawdzone na renderze PDF w powiększeniu).

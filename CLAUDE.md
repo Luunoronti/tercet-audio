@@ -21,19 +21,20 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   wprowadzać w `gen.py` i regenerować. Workflow (3 komendy) i szczegóły:
   `headamp/README.md`.
 - `headamp/headamp.kicad_sch`: **kanał L + kanał P + zasilacz + crossfeed
-  S1 + gniazda WE/WY kompletne, layout w ramkach modułów** (WEJŚCIE,
-  KANAŁ L, KANAŁ P, WYJŚCIE, SIEĆ, ZASILACZ B+, ŻARZENIE). Połączenia
-  między modułami rysowane drutami (hybryda, nie global_label) poza
-  HEAT_A/HEAT_B/ELEV (etykiety lokalne, zamierzone) i GND/PE (symbole
-  power). Paper A2 (treść ~400×428mm - A3 nie mieści wysokości).
-  **ERC: ostrzeżenia oczekiwane** - `missing_unit` ×3 (U1/U2/U202, unity
-  grzania nie są rysowane - DECYZJA) + `multiple_net_names` ELEV/HEAT_B
-  (jak w common/riaa). **Plus 3 błędy `missing_power_pin`** (też
-  U1/U2/U202) - piny grzania w bibliotece Valve są typu `power_in`, KiCad
-  ERC zgłasza to jako error dla nieumieszczonego unitu, nie tylko
-  warning; nie da się obniżyć severity bez ruszania `headamp.kicad_pro`
-  (poza zakresem). **OTWARTE do decyzji użytkownika** - patrz
-  docs/PROJEKT-HEADAMP.md TODO i "Decyzje - Etap 6".
+  S1 + gniazda WE/WY + żarniki lamp kompletne, layout w ramkach modułów**
+  (WEJŚCIE, KANAŁ L, KANAŁ P, WYJŚCIE, SIEĆ, ZASILACZ B+, ŻARZENIE).
+  Połączenia między modułami rysowane drutami (hybryda, nie global_label)
+  poza ELEV (etykieta lokalna, zamierzona, tam gdzie łączy dzielnik
+  elewacji z blokiem żarzenia) i GND/PE (symbole power). Paper A2 (treść
+  ~400×378mm - A3 nadal nie mieści wysokości, ~80mm za mało).
+  **ERC: 0 błędów, 0 ostrzeżeń** (2026-09-08: żarniki ECC82/EL84
+  przywrócone na schemat - wariant a, rysowane DRUTAMI wewnątrz ramki
+  ŻARZENIE zamiast etykiet HEAT_A/HEAT_B; usunięcie etykiet + realne
+  połączenia usunęło zarówno `missing_unit`/`missing_power_pin` jak i
+  `multiple_net_names` ELEV/HEAT_B). Prąd żarzenia: ok. 1,7 A (2×EL84
+  0,76A + ECC82 0,15A; budżet 1,9A) - poprawiony tekst na schemacie
+  (był błędnie "0,3A"). Szczegóły: docs/PROJEKT-HEADAMP.md "Decyzje -
+  kosmetyka arkusza".
 - Numeracja na schemacie (≠ wcześniejsze dokumenty): C2=1µ katoda stała,
   C3=100µ za SW2 ("wokal do przodu"), C5=100n sprzęgający, C6=470µ katoda
   EL84, R9=zwora triodowa (kanał L); kanał P = refy +200 (R201.., C201..,
@@ -54,10 +55,8 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   wartości, wyniki symulacji, TODO).
 
 ## Następne kroki headamp (kolejność sugerowana)
-1. Decyzja: zaakceptować 3 błędy ERC `missing_power_pin` (żarniki
-   nierysowane) czy przywrócić unity grzania z realnym okablowaniem.
-2. BOM (TME) + specyfikacja OPT dla nawijacza.
-3. Zakup DT 770 M; decyzja obudowy (seria TERCET).
+1. BOM (TME) + specyfikacja OPT dla nawijacza.
+2. Zakup DT 770 M; decyzja obudowy (seria TERCET).
 
 ## Narzędzia
 - KiCad 10.0.6 (instalacja per-user:
