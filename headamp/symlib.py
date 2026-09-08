@@ -163,6 +163,22 @@ def embed_text(sym, libprefix):
     return dump(sym, 1)
 
 
+def xform(dx, dy, rot, mirror):
+    """Transform a pin offset (dx,dy) in symbol-local coords (KiCad symbol
+    editor Y-up) by rotation (0/90/180/270, CCW steps of 90 deg) and mirror
+    ('x'/'y'/None), into schematic-sheet coords (Y-down). Shared by gen.py
+    (placing wires against generated pins) and check_geom.py (recomputing
+    pin positions straight from a saved .kicad_sch, independently of gen.py)."""
+    x, y = dx, -dy
+    if mirror == 'y':
+        x = -x
+    if mirror == 'x':
+        y = -y
+    for _ in range(rot // 90):
+        x, y = y, -x
+    return x, y
+
+
 def pins(sym):
     """Return {unit: [(number, x, y, angle, length, name)]}"""
     out = {}

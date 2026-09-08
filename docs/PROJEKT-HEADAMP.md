@@ -683,3 +683,65 @@ etykiet lokalnych/globalnych ani symboli `Earth_Protective`. Zmiana w
   (idempotencja uuid5 potwierdzona `diff`), PDF obejrzany - moduły
   ZASILACZ B+/ŻARZENIE czytelne, druty ELEV/V_RAW nie przecinają korpusów
   komponentów.
+
+## gen.py - test geometrii drutów (Eeschema scala współliniowe druty)
+
+Diagnoza (2026-09-08): plik z `gen.py` dawał w `kicad-cli sch erc` 0/0 i
+poprawną netlistę, ale po otwarciu i ZAPISANIU w Eeschema (KiCad 10.0.6)
+miał 7 błędów `pin_not_connected` + 3 `unconnected_wire_endpoint`, a liczba
+drutów spadała z 251 do 233. Przyczyna: **Eeschema przy zapisie scala
+współliniowe odcinki drutu stykające się końcami** (jeśli w punkcie
+styku nie ma pinu/junction/trzeciego drutu) - jeśli generator wyemitował
+dwa współliniowe odcinki, które się NA SIEBIE NAKŁADAJĄ (a nie tylko
+stykają końcami), albo odcinek przechodzący PRZEZ pin/koniec innego
+drutu bez junction w tym punkcie, scalanie gubi ten punkt jako
+wierzchołek i połączenie znika - mimo że `kicad-cli` (parsujący plik
+"na sucho", bez scalania) tego nie widzi.
+
+**Test w `headamp/check_geom.py`** (wywoływany automatycznie z
+`check.py`), niezależny od `gen.py` - parsuje bezpośrednio wyjściowy
+`.kicad_sch` (piny liczone przez `symlib.pins()` + `symlib.xform()`,
+tak jak `gen.py`, ale osobnym przebiegiem):
+  1. brak nakładających się współliniowych odcinków (dotykanie samymi
+     końcami OK),
+  2. brak odcinka przechodzącego przez pin/koniec innego drutu bez
+     junction w tym punkcie,
+  3. brak odcinków < 1,27 mm,
+  4. brak "dyndających" końców drutu (każdy koniec musi leżeć na
+     pinie/junction/no_connect albo stykać się z innym drutem).
+  5. **Emulacja scalania Eeschema** (`emulate_merge()`): scala
+     współliniowe odcinki stykające się końcami w punkcie bez
+     pinu/junction/trzeciego drutu (dokładnie jak robi to Eeschema),
+     liczy połączenia na wyniku i porównuje partycję pinów z prawdziwą
+     netlistą `kicad-cli sch export netlist` - **musi być identyczna**
+     (piny `power:GND` i `power:PWR_FLAG` wyłączone z porównania - te
+     symbole nie pojawiają się jako węzły w eksporcie kicad-cli).
+
+Znalezione i naprawione w `gen.py` (wszystkie: prosta linia między dwoma
+pinami przechodząca dokładnie przez pin/koniec leżący "po drodze" na tej
+samej współrzędnej - naprawa = jog w bok/dół omijający kolizję, nigdy
+prosta linia przez punkt trzeci):
+  - R401.1-C401.1 i R401.2-C401.2 (tor prosty wejścia, kanał L) - linia
+    R.1-C.1 szła przez pin R.2; naprawa: magistrala IN z junction +
+    osobny jog dla pary OUT (analogicznie R402/C402, kanał P).
+  - SW401 COM A -> magistrala outR: odcinek (185,42/39,37)-(185,42/36,83)
+    nakładał się z początkiem magistrali (185,42/36,83)-(185,42/63,5) -
+    naprawa: magistrala zaczyna się od razu w punkcie SW401 (39,37).
+  - Węzeł elewacji (R304.2/R305.1) -> ELEV_BUS_Y: prosta linia w dół
+    przechodziła przez oba piny R305 (ta sama kolumna x=210,82) - naprawa:
+    jog przez wolną kolumnę x=200,66, wchodzi w magistralę ELEV_BUS_Y
+    dopiero za kolumną R305 (magistrala tylko PRZECINA - nie kończy się na
+    - sieć R305.2->GND, co jest bezpieczne, zwykłe krzyżowanie dwóch
+    różnych sieci).
+  - T301.5 (AC1 mostka żarzenia) szedł prosto w dół przez pin T301.6 (ta
+    sama kolumna) - jog do wolnej kolumny x=114,3.
+  - T301.6 (AC2) szedł poziomo przez pin D308.1 (przypadkowo ta sama
+    współrzędna) - jog omijający D308 tuż przed dojściem do D309.1.
+  - C403.1-R405.1 i C404.1-R406.1 (gałęzie krzyżowe) - linia szła przez
+    pin C403.2/C404.2 (ten sam kondensator, oba piny na tym samym
+    poziomie) - jog w bok omija.
+Weryfikacja: `check_geom.py` OK, emulacja scalania = netlista kicad-cli
+(0 różnic), `check.py` OK (58 sieci, te same partycje pinów), ERC 0/0,
+dwa uruchomienia `gen.py` identyczne (idempotencja uuid5). Współdzielona
+funkcja `xform()` (transformacja pinu wg rot/mirror) przeniesiona z
+`gen.py` do `symlib.py` - używana teraz przez oba moduły.

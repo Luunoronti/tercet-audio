@@ -7,8 +7,10 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 import symlib
+import check_geom
 
 NETFILE = sys.argv[1] if len(sys.argv) > 1 else os.path.join(os.path.dirname(__file__), 'headamp.net')
+SCHFILE = sys.argv[2] if len(sys.argv) > 2 else os.path.join(os.path.dirname(__file__), 'headamp.kicad_sch')
 
 tree, _ = symlib.parse(symlib.tokenize(open(NETFILE, encoding='utf-8').read()), 0)
 nets = {}
@@ -235,6 +237,20 @@ diff(('SW401', '4'), ('SW401', '5'))          # styk B != COM B
 same(('T1', '4'), ('J403', 'T'))
 same(('T201', '4'), ('J403', 'R'))
 same(('J403', 'S'), ('R1', '2'))
+
+# =======================================================================
+#  test geometrii drutow (check_geom.py) - Eeschema scala wspolliniowe
+#  odcinki przy zapisie; jesli gen.py wyemituje nakladajace sie odcinki
+#  (albo odcinek przechodzacy przez pin/koniec drutu bez junction),
+#  polaczenie ginie PO otwarciu w Eeschema mimo ze kicad-cli tego nie
+#  widzi (netlista/ERC na "surowym" pliku z gen.py wychodzi czysto) -
+#  patrz docs/PROJEKT-HEADAMP.md. Uruchamiamy zawsze razem z asercjami
+#  netlisty powyzej.
+if os.path.isfile(SCHFILE):
+    geom_fails = check_geom.run(SCHFILE, NETFILE if os.path.isfile(NETFILE) else None)
+    if geom_fails:
+        fails.append('GEOMETRIA DRUTOW (check_geom.py):')
+        fails.extend('  ' + f for f in geom_fails)
 
 print('Nety:', len(nets))
 if fails:

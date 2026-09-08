@@ -22,6 +22,15 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   **NIE edytować `headamp.kicad_sch` ręcznie w Eeschema/Konnect**, zmiany
   wprowadzać w `gen.py` i regenerować. Workflow (4 komendy, ostatnia =
   eksport PDF do `headamp/ref/`) i szczegóły: `headamp/README.md`.
+  **Eeschema przy zapisie scala współliniowe druty** — jeśli `gen.py`
+  narysuje dwa nakładające się współliniowe odcinki (albo odcinek
+  przechodzący przez pin/koniec innego drutu bez junction), Eeschema po
+  otwarciu/zapisie gubi to połączenie mimo że `kicad-cli erc`/`netlist` na
+  "surowym" pliku z `gen.py` tego nie widzi (0/0, netlista poprawna) —
+  `check.py` obejmuje teraz test geometrii drutów (`headamp/check_geom.py`,
+  patrz docs/PROJEKT-HEADAMP.md "gen.py - test geometrii drutów") który to
+  wykrywa; każdy nowy routing w `gen.py` musi przechodzić `check.py` (nie
+  tylko ERC).
 - `headamp/headamp.kicad_sch`: **kanał L + kanał P + zasilacz + crossfeed
   S1 + gniazda WE/WY + żarniki lamp kompletne, layout w ramkach modułów**
   (WEJŚCIE, KANAŁ L, KANAŁ P, WYJŚCIE, SIEĆ, ZASILACZ B+, ŻARZENIE).

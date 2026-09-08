@@ -70,15 +70,7 @@ for lib, name in LIBPARTS:
     PINGEO['%s:%s' % (lib, name)] = symlib.pins(symlib.resolve(lib, name))
 
 
-def xform(dx, dy, rot, mirror):
-    x, y = dx, -dy
-    if mirror == 'y':
-        x = -x
-    if mirror == 'x':
-        y = -y
-    for _ in range(rot // 90):
-        x, y = y, -x
-    return x, y
+xform = symlib.xform
 
 
 SYMS = []
@@ -392,25 +384,32 @@ wire(pin('J401', 1), (45.72, 30.48))
 wire((45.72, 30.48), (45.72, 26.67))
 wire((45.72, 26.67), pin('R403', 1))                # -> galaz krzyzowa (wprost)
 wire((45.72, 26.67), (45.72, 22.86))
-wire((45.72, 22.86), (151.13, 22.86))
+wire((45.72, 22.86), (161.29, 22.86))               # tor prosty IN: magistrala do R401.1 (T) i C401.1
 wire((151.13, 22.86), pin('R401', 1))               # -> tor prosty (nad galezia krzyzowa)
+wire((161.29, 22.86), pin('C401', 1))               # -> C401.1, ta sama siec IN (omija pin R401.2)
+junc((151.13, 22.86))
 junc((45.72, 26.67))
 wire(pin('J402', 1), (45.72, 53.34))
 wire((45.72, 53.34), (45.72, 60.96))
 wire((45.72, 60.96), pin('R404', 1))                # -> galaz krzyzowa (wprost)
 wire((45.72, 60.96), (45.72, 64.77))
-wire((45.72, 64.77), (151.13, 64.77))
+wire((45.72, 64.77), (161.29, 64.77))               # tor prosty IN: magistrala do R402.1 (T) i C402.1
 wire((151.13, 64.77), pin('R402', 1))               # -> tor prosty (pod galezia krzyzowa)
+wire((161.29, 64.77), pin('C402', 1))               # -> C402.1, ta sama siec IN (omija pin R402.2)
+junc((151.13, 64.77))
 junc((45.72, 60.96))
 gnd(*pin('J401', 2))
 gnd(*pin('J402', 2))
 
 # --- tor prosty (ZAWSZE wpiety): R401||C401 (kanal L), R402||C402 (kanal P)
-#     miedzy wezlem wejsciowym a wezlem "out" ---
-wire(pin('R401', 1), pin('C401', 1))                # inL strona R401/C401
-wire(pin('R401', 2), pin('C401', 2))                # outL strona
-wire(pin('R402', 1), pin('C402', 1))                # inR strona
-wire(pin('R402', 2), pin('C402', 2))                # outR strona
+#     miedzy wezlem wejsciowym (patrz IN wyzej) a wezlem "out". Kolejnosc
+#     pinow na osi X to R.1, R.2, C.1, C.2 - polaczenie drugiej pary
+#     (R.2 -> C.2, siec "out") MUSI wiec omijac pin C.1 lezacy dokladnie
+#     na drodze; prosta linia R.2-C.2 (jak w poprzedniej wersji) przechodzi
+#     PRZEZ pin C.1 bez junction - Eeschema po zapisie scala wspolliniowe
+#     odcinki i gubi to polaczenie (patrz check_geom.py, test (b)/(a)) ---
+wire(pin('R401', 2), (158.75, 29.21), (168.91, 29.21), pin('C401', 2))   # outL, jog pod C401.1
+wire(pin('R402', 2), (158.75, 58.42), (168.91, 58.42), pin('C402', 2))   # outR, jog nad C402.1
 
 # --- magistrale wyjsciowe outL (x=175) / outR (x=185), zbieraja tez galaz
 #     krzyzowa przeciwnego kanalu POPRZEZ SW401 (COM sekcji B->outL,
@@ -419,7 +418,12 @@ wire(pin('C401', 2), (175.26, 26.67))
 wire((175.26, 21.59), (175.26, 49.53)); junc((175.26, 26.67))
 wire((175.26, 21.59), (39.37, 21.59)); wire((39.37, 21.59), (39.37, 133.35))
 wire(pin('C402', 2), (185.42, 60.96))
-wire((185.42, 36.83), (185.42, 63.5)); junc((185.42, 60.96))
+# magistrala zaczyna sie dokladnie w punkcie gdzie dolacza SW401 COM A
+# (39.37 = koniec drutu ponizej, patrz "COM A -> magistrala outR"), NIE
+# wyzej (36.83) - w poprzedniej wersji odcinek do SW401 (39.37-36.83)
+# naklada sie na poczatek tej magistrali (36.83-63.5), co Eeschema scala
+# przy zapisie i gubi polaczenie (patrz check_geom.py, test (a))
+wire((185.42, 39.37), (185.42, 63.5)); junc((185.42, 60.96))
 wire((185.42, 63.5), (20.32, 63.5))
 wire((20.32, 63.5), (20.32, 238.76)); wire((20.32, 238.76), (39.37, 238.76))
 
@@ -429,11 +433,14 @@ wire((20.32, 63.5), (20.32, 238.76)); wire((20.32, 238.76), (39.37, 238.76))
 wire(pin('R403', 2), (113.03, 26.67)); wire((113.03, 26.67), pin('C403', 1))
 junc(pin('C403', 1))
 wire(pin('C403', 2), (120.65, 33.02)); gnd(120.65, 33.02)
-wire(pin('C403', 1), (130.81, 33.02)); wire((130.81, 33.02), pin('R405', 1))
+# C403.1 -> R405.1: prosta linia na y=33.02 (stary kod) przechodzila PRZEZ
+# pin C403.2 (lezy dokladnie posrodku, ta sama siec C403 ma oba piny na
+# tym poziomie) - jog w dol (y=34.29) i z powrotem omija ten pin
+# (patrz check_geom.py, test (b))
+wire(pin('C403', 1), (113.03, 34.29), (132.08, 34.29), (132.08, 29.21), pin('R405', 1))
 wire(pin('R405', 2), pin('SW401', 1, unit=1))       # R405 -> styk A (obaj na y=36,83)
 noconn(pin('SW401', 3, unit=1))                     # NC = pozycja "prosty" (galaz plywajaca)
-wire(pin('SW401', 2, unit=1), (185.42, 39.37))
-wire((185.42, 39.37), (185.42, 36.83))              # COM A -> magistrala outR
+wire(pin('SW401', 2, unit=1), (185.42, 39.37))      # COM A -> magistrala outR (patrz wyzej)
 
 # --- galaz krzyzowa P -> L: R404(2k2) wprost z gniazda -> mR, C404(220n)
 #     mR->GND, R406(3k3) mR -> SW401 sekcja B (styk 4) -> COM (pin 5) ->
@@ -441,7 +448,8 @@ wire((185.42, 39.37), (185.42, 36.83))              # COM A -> magistrala outR
 wire(pin('R404', 2), (113.03, 60.96)); wire((113.03, 60.96), pin('C404', 1))
 junc(pin('C404', 1))
 wire(pin('C404', 2), (120.65, 45.72)); gnd(120.65, 45.72)
-wire(pin('C404', 1), (130.81, 45.72)); wire((130.81, 45.72), pin('R406', 1))
+# C404.1 -> R406.1: analogicznie do C403/R405 wyzej - jog omija pin C404.2
+wire(pin('C404', 1), (113.03, 44.45), (132.08, 44.45), (132.08, 41.91), pin('R406', 1))
 wire(pin('R406', 2), pin('SW401', 4, unit=2))       # R406 -> styk B (obaj na y=49,53)
 noconn(pin('SW401', 6, unit=2))                     # NC = pozycja "prosty" (galaz plywajaca)
 wire(pin('SW401', 5, unit=2), (175.26, 52.07))
@@ -648,14 +656,22 @@ place('D306', 'Device:D', '1N5822', 287.02, 316.23 + PSU_DY, rot=270)
 place('D307', 'Device:D', '1N5822', 299.72, 316.23 + PSU_DY, rot=270)
 place('D308', 'Device:D', '1N5822', 287.02, 331.47 + PSU_DY, rot=270)
 place('D309', 'Device:D', '1N5822', 299.72, 331.47 + PSU_DY, rot=270)
-# AC1 (T301 sec zarzenia, pin5=SC) - D306.A / D308.K
+# AC1 (T301 sec zarzenia, pin5=SC) - D306.A / D308.K. T301 pin5 i pin6 sa
+# na tej samej kolumnie (x=116.84) - prosta linia w dol z pin5 (stary kod)
+# przechodzila PRZEZ pin T301.6 (lezacy dokladnie posrodku drogi); jog do
+# x=114.3 zaraz po opuszczeniu pinu omija T301.6 (patrz check_geom.py,
+# test (b)).
 wire(pin('D306', 2), pin('D308', 1))
-wire(pin('T301', 5), (116.84, 350.52), (287.02, 350.52))  # -SHIFT(49.53) z 400.05
+wire(pin('T301', 5), (114.3, 326.39), (114.3, 350.52), (287.02, 350.52))  # -SHIFT(49.53) z 400.05
 junc((287.02, 350.52))
 # AC2 (T301 sec zarzenia, pin6=SD) - D307.A / D309.K (odsuniete o 2,54mm w X,
-# zeby nie pokryc sie z galezia AC1)
+# zeby nie pokryc sie z galezia AC1). Koncowy odcinek do D309.1 (299.72)
+# jogowany przez x=289.56 tuz przed D309, zeby NIE przechodzic przez pin
+# D308.1 (287.02,354.33), ktory lezy dokladnie na starej prostej trasie
+# (patrz check_geom.py, test (b)).
 wire(pin('D307', 2), pin('D309', 1))
-wire(pin('T301', 6), (119.38, 334.01), (119.38, 354.33), (299.72, 354.33))  # -SHIFT z 383.54/403.86
+wire(pin('T301', 6), (119.38, 334.01), (119.38, 351.79), (289.56, 351.79),
+     (289.56, 354.33), (299.72, 354.33))  # -SHIFT z 383.54/403.86
 junc((299.72, 354.33))
 place('C305', 'Device:C_Polarized', '10000u/16V', 317.5, 316.23 + PSU_DY, tol='20%')
 place('C306', 'Device:C_Polarized', '470u/25V', 337.82, 316.23 + PSU_DY,
@@ -723,8 +739,19 @@ junc((384.81, YHP)); junc((384.81, YHM))
 ELEV_BUS_Y = 330.2
 VRAW_BUS_Y = 334.01
 
-wire((210.82, 288.29 + PSU_DY), (210.82, ELEV_BUS_Y))
-wire((210.82, ELEV_BUS_Y), (231.14, ELEV_BUS_Y))
+# wezel elewacji (R304.2/R305.1/C304.1, junc juz istnieje - patrz wyzej
+# "elewacja zarzenia") -> ELEV_BUS_Y. Prosta linia w dol (stary kod)
+# przechodzila PRZEZ oba piny R305 (R305 lezy fizycznie na tej samej
+# kolumnie x=210.82, miedzy wezlem a ELEV_BUS_Y) - jog w bok (x=200.66,
+# wolna kolumna) omija R305/C304 (patrz check_geom.py, test (b)). Jog
+# wchodzi w magistrale ELEV_BUS_Y od razu az do x=231.14 (K1.A2) - BEZ
+# przystanku dokladnie w x=210.82, bo tam (ta sama kolumna co R305) biegnie
+# PIONOWO inna siec (R305.2 -> GND, patrz "elewacja zarzenia" wyzej);
+# magistrala tylko ja PRZECINA (bez wspolnego konca - bezpieczne, zwykle
+# krzyzowanie), nie konczy sie na niej (co wymagaloby junction i byloby
+# nieprawidlowe elektrycznie - to INNA siec).
+wire((210.82, 288.29 + PSU_DY), (200.66, 288.29 + PSU_DY),
+     (200.66, ELEV_BUS_Y), (231.14, ELEV_BUS_Y))
 wire((231.14, 293.37 + PSU_DY), (231.14, ELEV_BUS_Y))
 junc((231.14, ELEV_BUS_Y))
 wire((231.14, ELEV_BUS_Y), (281.94, ELEV_BUS_Y))
