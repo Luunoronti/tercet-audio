@@ -80,6 +80,31 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   10 przy pierwszym zapisie w Eeschema zaktualizuje format pliku z
   20231120 do 20260306 — to normalne.
 
+## STAN WIP (2026-09-08 wieczor) — od tego zaczac w domu
+Plik roboczy `headamp/kicad/headamp.kicad_sch` zacommitowany PO recznych
+porzadkach uzytkownika w Eeschema (K1 podlaczony: A1->V_RAW, A2->ELEV,
+12->+300V, 11->R306, 14 NC; PWR_FLAG dodane na V_RAW i minusie zarzenia).
+Netlista OK (58 sieci, tor obu kanalow, crossfeed, ground breaker
+poprawne). **ERC: 3 bledy + 14 ostrzezen — wszystkie z przenumerowania
+kanalu P przez KiCad** (dawne refy +200 juz NIE istnieja; kanal P to teraz
+U3, U4, T2, RV2, SW3, SW402, C7-C12, R10-R18, R407-R409, C405/C406).
+Do zrobienia RECZNIE w Eeschema (kolejnosc):
+1. `U3` (ECC82 kanalu P) -> referencja `U1`, **Unit B** (jedna ECC82 na oba
+   kanaly; piny unitu B: g=2, a=1, k=3) — usuwa blad missing_power_pin U3.
+2. Zarnik `U202B` w bloku ZARZENIE -> referencja `U4` (unit B zostaje) —
+   usuwa blad missing_power_pin U4 i sierote U202.
+3. Usunac jeden z dwoch PWR_FLAG na GND (przy wtornych T1 i T2) — blad
+   pin_to_pin. Docelowo 3 flagi: GND, V_RAW, minus zarzenia.
+4. `RV2` -> `RV1` Unit B; `SW402` -> `SW401` Unit B (drugie sekcje pot./DPDT).
+Potem: `check.py` dostosowac do nowej numeracji (Sonnet), docs/CLAUDE.md —
+usunac opisy numeracji "+200"; ERC ma byc 0/0. Weryfikacja: kicad-cli
+netlist -> `python headamp/check.py <netlista>` -> erc -> pdf do ref/.
+PWR_FLAG = znacznik dla ERC (pin "power output"), nie element; potrzebny
+na sieci z pinem "power input" bez zrodla: GND, V_RAW (VI LD1085), minus
+zarzenia (piny zarnikow lamp). Dwa na jednej sieci = blad.
+Nieśledzone smieci do usuniecia przy okazji: `headamp/draw/`,
+`headamp/ref/amp_L.svg` (porzucona proba schemdraw), `Claude outputs/`.
+
 ## Następne kroki headamp (kolejność sugerowana)
 1. BOM (TME) + specyfikacja OPT dla nawijacza.
 2. Zakup DT 770 M; decyzja obudowy (seria TERCET).

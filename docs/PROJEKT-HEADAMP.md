@@ -745,3 +745,11 @@ Weryfikacja: `check_geom.py` OK, emulacja scalania = netlista kicad-cli
 dwa uruchomienia `gen.py` identyczne (idempotencja uuid5). Współdzielona
 funkcja `xform()` (transformacja pinu wg rot/mirror) przeniesiona z
 `gen.py` do `symlib.py` - używana teraz przez oba moduły.
+
+### Stan WIP 2026-09-08 (wieczor)
+Plik roboczy po recznych porzadkach: K1 podlaczony (A1->V_RAW, A2->ELEV),
+PWR_FLAG na V_RAW i minusie zarzenia. KiCad przenumerowal kanal P (U3/U4/T2/
+RV2/SW3/SW402/C7-C12/R10-R18/R407-R409/C405-C406) — refy +200 nieaktualne.
+Otwarte: U3->U1 unit B, zarnik U202B->U4, jeden PWR_FLAG na GND za duzo,
+RV2->RV1 B, SW402->SW401 B; potem check.py i docs do nowej numeracji.
+Szczegoly i kolejnosc: CLAUDE.md, sekcja STAN WIP.
