@@ -10,7 +10,9 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
 - Schematy RIAA są generowane skryptem (`riaa/gen.py` + `check.py` z
   asercjami netlisty). headamp na razie edytowany bezpośrednio przez
   Konnect/KiCad — plik `.kicad_sch` jest źródłem prawdy; generator TODO.
-- `.gitignore` wycina PNG, svg_out/, PDF headampa i artefakty KiCada.
+- `.gitignore` wycina PNG, svg_out/, PDF headampa i artefakty KiCada —
+  WYJĄTEK: `headamp/ref/headamp.pdf` (eksport aktualnego schematu) NIE
+  jest ignorowany i jest commitowany razem z `headamp.kicad_sch`.
 - Napięcia do ~330 V DC — zasady bezpieczeństwa w docs/ i na schematach.
 
 ## headamp — stan na 2026-09-08
@@ -18,23 +20,20 @@ dokument urządzenia, nad którym pracujesz, zanim cokolwiek zmienisz**.
   OPT 5k:80 (DT 770 M). Zero półprzewodników w torze; NFB brak (decyzja).
 - **Schemat generowany skryptem `headamp/gen.py`** (jak `riaa/gen.py`) —
   **NIE edytować `headamp.kicad_sch` ręcznie w Eeschema/Konnect**, zmiany
-  wprowadzać w `gen.py` i regenerować. Workflow (3 komendy) i szczegóły:
-  `headamp/README.md`.
+  wprowadzać w `gen.py` i regenerować. Workflow (4 komendy, ostatnia =
+  eksport PDF do `headamp/ref/`) i szczegóły: `headamp/README.md`.
 - `headamp/headamp.kicad_sch`: **kanał L + kanał P + zasilacz + crossfeed
   S1 + gniazda WE/WY + żarniki lamp kompletne, layout w ramkach modułów**
   (WEJŚCIE, KANAŁ L, KANAŁ P, WYJŚCIE, SIEĆ, ZASILACZ B+, ŻARZENIE).
-  Połączenia między modułami rysowane drutami (hybryda, nie global_label)
-  poza ELEV (etykieta lokalna, zamierzona, tam gdzie łączy dzielnik
-  elewacji z blokiem żarzenia) i GND/PE (symbole power). Paper A2 (treść
-  ~400×378mm - A3 nadal nie mieści wysokości, ~80mm za mało).
-  **ERC: 0 błędów, 0 ostrzeżeń** (2026-09-08: żarniki ECC82/EL84
-  przywrócone na schemat - wariant a, rysowane DRUTAMI wewnątrz ramki
-  ŻARZENIE zamiast etykiet HEAT_A/HEAT_B; usunięcie etykiet + realne
-  połączenia usunęło zarówno `missing_unit`/`missing_power_pin` jak i
-  `multiple_net_names` ELEV/HEAT_B). Prąd żarzenia: ok. 1,7 A (2×EL84
-  0,76A + ECC82 0,15A; budżet 1,9A) - poprawiony tekst na schemacie
-  (był błędnie "0,3A"). Szczegóły: docs/PROJEKT-HEADAMP.md "Decyzje -
-  kosmetyka arkusza".
+  **Na schemacie tylko symbole GND** (DECYZJA 2026-09-08) — ELEV i V_RAW
+  są drutami (nie etykietami), PE bez symbolu `Earth_Protective` (drut
+  wprost z J1 pin 3 do ground breakera), PWR_FLAG zredukowane do 3
+  (empirycznie sprawdzone, każdy usuwany osobno dawał błąd ERC bez niego)
+  — patrz docs/PROJEKT-HEADAMP.md "Decyzja - tylko GND jako symbol". Paper
+  A2 (treść ~400×378mm - A3 nadal nie mieści wysokości, ~80mm za mało).
+  **ERC: 0 błędów, 0 ostrzeżeń** (brak oczekiwanych ostrzeżeń — sprawdzić
+  po każdej regeneracji). Prąd żarzenia: ok. 1,7 A (2×EL84 0,76A + ECC82
+  0,15A; budżet 1,9A). Szczegóły: docs/PROJEKT-HEADAMP.md.
 - Numeracja na schemacie (≠ wcześniejsze dokumenty): C2=1µ katoda stała,
   C3=100µ za SW2 ("wokal do przodu"), C5=100n sprzęgający, C6=470µ katoda
   EL84, R9=zwora triodowa (kanał L); kanał P = refy +200 (R201.., C201..,

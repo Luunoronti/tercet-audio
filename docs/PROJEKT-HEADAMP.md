@@ -166,9 +166,10 @@ elewacja +50 V z dzielnika B+ 220k/47k + 10µ). Budżet: 2×EL84 + ECC82 ≈1,9 
 - Kanał L + kanał P + zasilacz + crossfeed S1 + gniazda WE/WY + żarniki
   lamp **kompletne, layout w ramkach modułów**. **ERC: 0 błędów, 0
   ostrzeżeń** (po przywróceniu żarników drutami - patrz "Decyzje -
-  kosmetyka arkusza" niżej; `multiple_net_names` ELEV/HEAT_B też
-  zniknęło, bo etykieta HEAT_B na końcu szyny została usunięta, a jedyna
-  pozostała nazwa na tej sieci to ELEV).
+  kosmetyka arkusza" niżej). Na schemacie zostały wyłącznie symbole GND -
+  ELEV/V_RAW poprowadzone drutami, PE bez symbolu `Earth_Protective`,
+  PWR_FLAG zredukowane do 3 (empirycznie sprawdzone) - patrz "Decyzja -
+  tylko GND jako symbol" niżej.
 - UWAGA numeracja na schemacie różni się od sekcji "Wartości" wyżej:
   C2=1µ (katoda, stały), C3=100µ (za SW2), C5=100n (sprzęgający),
   C6=470µ (katoda EL84), R9=100R (zwora triodowa) - kanał L; kanał P =
@@ -602,3 +603,61 @@ tylko rysunku montażowego i tego dokumentu.
   strata wtrąceniowa 0,6–1,6 dB; OFF (S1 po stronie wyjścia) 0…−0,4 dB;
   stary wariant OFF (S1 na wejściu) dołek −1,6 dB w basie. `sim/crossfeed_sw.cir`
   do uruchomienia w ngspice, gdy będzie dostępny (brak na stacji Windows).
+
+## Decyzja - tylko GND jako symbol (2026-09-08)
+Na schemacie mają zostać wyłącznie symbole `power:GND` - żadnych innych
+etykiet lokalnych/globalnych ani symboli `Earth_Protective`. Zmiana w
+`headamp/gen.py`:
+- **ELEV i V_RAW zamienione z etykiet (`label`) na realne druty.** ELEV:
+  węzeł dzielnika elewacji (R304.2/R305.1/C304.1) → w dół do magistrali
+  poziomej (y=330,2, ok. 25 mm poniżej R304/R305/K1) → odczep w górę do
+  K1.A2 (junc) → dalej w prawo → w dół do szyny minus żarzenia (dawne
+  "HEAT_B", ten sam węzeł co filament F2/pin9 lamp i R308.2/C307.2/C308.2).
+  V_RAW: K1.A1 → jog w lewo (x=222,25, żeby nie przeciąć w tym samym
+  punkcie magistrali ELEV) → w dół do własnej magistrali poziomej
+  (y=334,0) → w prawo → w górę do węzła wyjścia mostka Schottky żarzenia
+  (już połączonego z U301.VI/C305/C306). Obie magistrale krzyżują się ze
+  sobą i z inną szyną GND bez punktu - to zwykłe, nieelektryczne
+  skrzyżowania drutów (brak `junction`), zgodnie z konwencją KiCad.
+- **K1 (przekaźnik rozładowania, z D305/R306) POZOSTAJE w bloku
+  ZASILACZ B+**, NIE przeniesiony do ramki ŻARZENIE. Korytarz między
+  blokiem rozładowania a blokiem żarzenia (y=330,2/334,0) jest wolny od
+  korpusów komponentów na całej długości (drut nie przecina żadnej
+  bryły), więc przeniesienie K1 nie dawało korzyści dla czytelności, a
+  wymagałoby przełożenia całego okablowania +300V bus i obwodu
+  rozładowania (D305/R306, styki 11/12/14 K1) bez potrzeby.
+- **PWR_FLAG - zostały tylko 3, wszystkie sprawdzone empirycznie
+  (usunięcie pojedynczo → ERC → przywrócenie, bo każde dawało
+  `power_pin_not_driven`):**
+  1. `pwrflag(224.79, y(113.03))` w `chan()` (tylko kanał L, `out_flag`) -
+     powrót wtórny OPT do GND (jak w b7d6cc9); usunięty → 1 błąd ERC.
+  2. `pwrflag(231.14, ...)` przy K1.A1 - sieć V_RAW zasilana wyłącznie
+     przez katody diod mostka Schottky (piny pasywne), a `U301.VI` (LD1085,
+     pin 3) to `power_in` → wymaga sterownika; usunięty → 2 błędy ERC.
+  3. `pwrflag(387.35, YHM+2.54)` na końcu szyny minus żarzenia (dawne
+     "HEAT_B", dziś ta sama sieć co ELEV) - sieć złożona wyłącznie z pinów
+     pasywnych (filamenty, R304.2, R308.2/C307.2/C308.2, K1.A2, D305.2),
+     zero `power_out`; usunięty → 1 błąd ERC.
+  Sieć +300V (piny lamp/OPT/R/C - same pasywne) i sieć PE (patrz niżej) NIE
+  mają żadnej flagi - potwierdzone, że nie są potrzebne (ERC 0/0 bez nich).
+- **PE bez symbolu i bez PWR_FLAG.** Usunięte oba symbole
+  `power:Earth_Protective` (przy J1 pin 3 i przy ground breakerze) razem z
+  PWR_FLAG, który stał przy pierwszym z nich (okazał się zbędny - sieć PE
+  ma tylko piny pasywne: J1.3 złączki oraz R309/D310/D311/C309 ground
+  breakera). J1 pin 3 połączony drutem wprost do lewego końca szyny PE
+  ground breakera (x=43,18/y=328,93+PSU_DY) - jeden ciągły przewód, bez
+  odgałęzień. Tekst „PE -> własna śruba M4 na chassis” zostaje bez zmian.
+  `headamp/check.py` **nie wymagał zmian** - asercje `diff(PE,GND)`,
+  `diff(PE,N)`, `diff(PE,L)` i `same()` na parach pinów PE już tam były
+  (operują na pinach z netlisty, nie na nazwach etykiet, więc nie zależały
+  od tego czy połączenie szło drutem czy etykietą).
+- **PDF w repo**: `headamp/ref/headamp.pdf` (nieignorowany -
+  `git check-ignore` potwierdza, że `.gitignore` (`headamp/*.pdf`) nie
+  obejmuje `headamp/ref/`) generowany po każdej zmianie schematu i
+  commitowany razem z `headamp.kicad_sch` - krok dodany do workflow w
+  `headamp/README.md` i `CLAUDE.md`.
+- Weryfikacja: `check.py` OK (58 sieci, bez zmian w asercjach), ERC 0
+  błędów / 0 ostrzeżeń, dwa uruchomienia `gen.py` dają identyczny plik
+  (idempotencja uuid5 potwierdzona `diff`), PDF obejrzany - moduły
+  ZASILACZ B+/ŻARZENIE czytelne, druty ELEV/V_RAW nie przecinają korpusów
+  komponentów.
